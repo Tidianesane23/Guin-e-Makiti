@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-rouge:  #E53935;
+  --color-jaune:  #FBC02D;
+  --color-vert:   #009944;
+  --color-noir:   #111111;
+
+  --font-sans: var(--font-poppins);
+}
+
+body {
+  background: #ffffff;
+  color: #111111;
+}
