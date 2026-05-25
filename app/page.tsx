@@ -1,7 +1,7 @@
 import HeroSection from '@/src/components/shop/HeroSection';
+import AdvantagesSection from '@/src/components/shop/AdvantagesSection';
 import CategoriesSection from '@/src/components/shop/CategoriesSection';
 import PopularProducts from '@/src/components/shop/PopularProducts';
-import AdvantagesSection from '@/src/components/shop/AdvantagesSection';
 import PromoBanner from '@/src/components/shop/PromoBanner';
 import TestimonialsSection from '@/src/components/shop/TestimonialsSection';
 import { createSupabaseServerClient } from '@/src/lib/supabase-server';
@@ -19,9 +19,9 @@ export default async function HomePage() {
   return (
     <>
       <HeroSection />
+      <AdvantagesSection />
       <CategoriesSection categories={categories} />
       <PopularProducts products={products} />
-      <AdvantagesSection />
       <PromoBanner />
       <TestimonialsSection />
     </>

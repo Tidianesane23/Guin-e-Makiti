@@ -12,18 +12,28 @@ export default function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Commander via WhatsApp"
-      className="fixed bottom-6 right-6 z-50 flex items-center rounded-full bg-[#25D366] text-white shadow-lg hover:opacity-90 transition-opacity duration-200"
+      className="fixed bottom-6 right-6 z-50 flex items-center rounded-full bg-[#25D366] text-white shadow-lg shadow-green-400/50 hover:opacity-90 transition-opacity duration-200"
       initial={{ x: 80, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.5 }}
+      animate={{
+        x: 0,
+        opacity: 1,
+        boxShadow: [
+          '0 0 0 0 rgba(37,211,102,0.6)',
+          '0 0 0 12px rgba(37,211,102,0)',
+          '0 0 0 0 rgba(37,211,102,0)',
+        ],
+      }}
+      transition={{
+        x:         { type: 'spring', stiffness: 260, damping: 20, delay: 0.5 },
+        opacity:   { duration: 0.4, delay: 0.5 },
+        boxShadow: { duration: 2, repeat: Infinity, repeatDelay: 2, ease: 'easeOut' as const, delay: 1 },
+      }}
     >
-      {/* Icon — always visible */}
       <span className="flex h-14 w-14 shrink-0 items-center justify-center">
         <WhatsAppIcon />
       </span>
-      {/* Label — desktop only, makes button pill-shaped */}
-      <span className="hidden sm:block pr-5 font-semibold text-sm whitespace-nowrap">
-        Commander via WhatsApp
+      <span className="hidden sm:block pr-5 font-bold text-sm whitespace-nowrap">
+        Commander
       </span>
     </motion.a>
   );
