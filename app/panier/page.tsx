@@ -87,10 +87,10 @@ export default function PanierPage() {
             <AnimatePresence initial={false}>
               {items.map((item) => (
                 <CartItemCard
-                  key={item.product.id}
+                  key={`${item.product.id}-${item.variant ?? ''}`}
                   item={item}
-                  onUpdate={(qty) => updateQuantity(item.product.id, qty)}
-                  onRemove={() => removeItem(item.product.id)}
+                  onUpdate={(qty) => updateQuantity(item.product.id, qty, item.variant)}
+                  onRemove={() => removeItem(item.product.id, item.variant)}
                 />
               ))}
             </AnimatePresence>

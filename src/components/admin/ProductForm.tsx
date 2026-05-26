@@ -89,14 +89,16 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
     }
   };
 
+  const hasVariants = images.length > 0;
+
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!name.trim())                    e.name        = 'Requis';
-    if (!slug.trim())                    e.slug        = 'Requis';
-    if (!categoryId)                     e.categoryId  = 'Requis';
-    if (!price || isNaN(Number(price)))  e.price       = 'Prix invalide';
-    if (!stock || isNaN(Number(stock)))  e.stock       = 'Stock invalide';
-    if (!description.trim())             e.description = 'Requis';
+    if (!name.trim())                                       e.name        = 'Requis';
+    if (!slug.trim())                                       e.slug        = 'Requis';
+    if (!categoryId)                                        e.categoryId  = 'Requis';
+    if (!price || isNaN(Number(price)))                     e.price       = 'Prix invalide';
+    if (!hasVariants && (!stock || isNaN(Number(stock))))   e.stock       = 'Stock invalide';
+    if (!description.trim())                                e.description = 'Requis';
     return e;
   };
 
@@ -113,7 +115,9 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
       category_id:     categoryId,
       price:           Number(price),
       promo_price:     promoPrice ? Number(promoPrice) : undefined,
-      stock:           Number(stock),
+      stock:           hasVariants
+        ? variantStocks.reduce((s, n) => s + (Number(n) || 0), 0)
+        : Number(stock) || 0,
       description:     description.trim(),
       is_active:       isActive,
       is_featured:     isFeatured,
@@ -123,9 +127,6 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
       images,
       variant_names:  variantNames,
       variant_stocks: variantStocks,
-      stock: variantStocks.length > 0
-        ? variantStocks.reduce((s, n) => s + (Number(n) || 0), 0)
-        : Number(stock) || 0,
     };
 
     try {
@@ -200,7 +201,7 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
           {/* Prix & stock */}
           <section className="rounded-2xl bg-white p-5 shadow-sm">
             <h2 className="mb-4 font-semibold text-noir">Prix & stock</h2>
-            <div className="grid grid-cols-3 gap-4">
+            <div className={`grid gap-4 ${hasVariants ? 'grid-cols-2' : 'grid-cols-3'}`}>
               <Field label="Prix (GNF)" error={errors.price}>
                 <input
                   type="number"
@@ -221,17 +222,25 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
                   className={inputCls(false)}
                 />
               </Field>
-              <Field label="Stock" error={errors.stock}>
-                <input
-                  type="number"
-                  value={stock}
-                  onChange={(e) => setStock(e.target.value)}
-                  placeholder="0"
-                  min="0"
-                  className={inputCls(!!errors.stock)}
-                />
-              </Field>
+              {!hasVariants && (
+                <Field label="Stock" error={errors.stock}>
+                  <input
+                    type="number"
+                    value={stock}
+                    onChange={(e) => setStock(e.target.value)}
+                    placeholder="0"
+                    min="0"
+                    className={inputCls(!!errors.stock)}
+                  />
+                </Field>
+              )}
             </div>
+            {hasVariants && (
+              <p className="mt-3 text-xs text-gray-400">
+                Stock total calculé depuis les variantes&nbsp;:&nbsp;
+                <strong className="text-noir">{variantStocks.reduce((s, n) => s + (Number(n) || 0), 0)} unités</strong>
+              </p>
+            )}
           </section>
 
           {/* Caractéristiques */}

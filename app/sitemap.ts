@@ -36,9 +36,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Produits actifs
   const { data: products } = await supabase
     .from('products')
-    .select('slug, updated_at')
+    .select('slug, created_at')
     .eq('is_active', true)
-    .order('updated_at', { ascending: false });
+    .order('created_at', { ascending: false });
 
   // Catégories
   const { data: categories } = await supabase
@@ -48,15 +48,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const productEntries: MetadataRoute.Sitemap = (products ?? []).map((p) => ({
     url:             `${SITE_URL}/produit/${p.slug}`,
-    lastModified:    new Date(p.updated_at),
-    changeFrequency: 'weekly',
+    lastModified:    new Date(p.created_at),
+    changeFrequency: 'weekly' as const,
     priority:        0.8,
   }));
 
   const categoryEntries: MetadataRoute.Sitemap = (categories ?? []).map((c) => ({
     url:             `${SITE_URL}/boutique?categorie=${c.slug}`,
     lastModified:    new Date(c.created_at),
-    changeFrequency: 'weekly',
+    changeFrequency: 'weekly' as const,
     priority:        0.7,
   }));
 

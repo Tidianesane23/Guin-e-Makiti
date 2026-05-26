@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPhone, faClock, faMapMarkerAlt, faTruck, faCreditCard,
-  faFacebook, faTiktok, faWhatsapp, faInstagram,
+  faFacebook, faTiktok, faWhatsapp,
 } from '@/src/lib/icons';
 import LogoText from '@/src/components/ui/LogoText';
 
@@ -47,17 +47,14 @@ export default function Footer() {
 
             {/* Réseaux sociaux */}
             <div className="flex gap-2.5">
-              <SocialBtn href="https://facebook.com/guineemakiti" label="Facebook" hoverColor="#4267B2">
+              <SocialBtn href="https://www.facebook.com/profile.php?id=100063789246575" label="Facebook" hoverColor="#4267B2">
                 <FontAwesomeIcon icon={faFacebook} style={{ fontSize: 15, color: 'inherit' }} />
               </SocialBtn>
-              <SocialBtn href="https://tiktok.com/@guineemakiti" label="TikTok" hoverColor="#fff">
+              <SocialBtn href="https://vm.tiktok.com/ZS9Y7mTqMdTYK-3svye/" label="TikTok" hoverColor="#fff">
                 <FontAwesomeIcon icon={faTiktok} style={{ fontSize: 15, color: 'inherit' }} />
               </SocialBtn>
               <SocialBtn href={`https://wa.me/${WA_NUMBER}`} label="WhatsApp" hoverColor="#25D366">
                 <FontAwesomeIcon icon={faWhatsapp} style={{ fontSize: 15, color: 'inherit' }} />
-              </SocialBtn>
-              <SocialBtn href="https://instagram.com/guineemakiti" label="Instagram" hoverColor="#E1306C">
-                <FontAwesomeIcon icon={faInstagram} style={{ fontSize: 15, color: 'inherit' }} />
               </SocialBtn>
             </div>
           </div>

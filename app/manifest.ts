@@ -26,14 +26,5 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: 'any',
       },
     ],
-    screenshots: [
-      {
-        src:          '/screenshots/home.png',
-        sizes:        '1080x1920',
-        type:         'image/png',
-        form_factor:  'narrow',
-        label:        'Page d\'accueil Guinée Makiti',
-      },
-    ],
   };
 }

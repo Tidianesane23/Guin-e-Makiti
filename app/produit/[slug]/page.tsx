@@ -17,13 +17,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const supabase = await createSupabaseServerClient();
   const product  = await getProductBySlug(slug, supabase);
   if (!product) return { title: 'Produit introuvable — Guinée Makiti' };
+
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://guinee-makiti.com';
+
   return {
     title: `${product.name} — Guinée Makiti`,
     description: product.description,
     openGraph: {
-      title: product.name,
+      type:        'website',
+      locale:      'fr_GN',
+      url:         `${SITE_URL}/produit/${product.slug}`,
+      siteName:    'Guinée Makiti',
+      title:       product.name,
       description: product.description,
-      images: product.image_url ? [{ url: product.image_url }] : [],
+      images: product.image_url
+        ? [{ url: product.image_url, width: 800, height: 800, alt: product.name }]
+        : [],
+    },
+    twitter: {
+      card:        'summary_large_image',
+      title:       product.name,
+      description: product.description,
+      images:      product.image_url ? [product.image_url] : [],
     },
   };
 }

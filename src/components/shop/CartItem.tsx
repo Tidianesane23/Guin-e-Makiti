@@ -15,10 +15,20 @@ interface CartItemCardProps {
 }
 
 export default function CartItemCard({ item, onUpdate, onRemove }: CartItemCardProps) {
-  const { product, quantity } = item;
-  const { name, price, promo_price, image_url, slug, stock } = product;
+  const { product, quantity, variant } = item;
+  const { name, price, promo_price, slug } = product;
   const effectivePrice = promo_price ?? price;
   const hasPromo = promo_price !== undefined && promo_price < price;
+
+  const variantIdx = variant
+    ? (product.variant_names ?? []).indexOf(variant)
+    : -1;
+  const displayImage = variantIdx >= 0
+    ? (product.images?.[variantIdx] ?? product.image_url)
+    : product.image_url;
+  const effectiveStock = variantIdx >= 0 && product.variant_stocks?.length
+    ? (product.variant_stocks[variantIdx] ?? product.stock)
+    : product.stock;
 
   return (
     <motion.div
@@ -34,9 +44,9 @@ export default function CartItemCard({ item, onUpdate, onRemove }: CartItemCardP
         href={`/produit/${slug}`}
         className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gray-100"
       >
-        {image_url ? (
+        {displayImage ? (
           <img
-            src={image_url}
+            src={displayImage}
             alt={name}
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
           />
@@ -55,6 +65,11 @@ export default function CartItemCard({ item, onUpdate, onRemove }: CartItemCardP
             >
               {name}
             </Link>
+            {variant && (
+              <span className="mt-0.5 inline-block rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                {variant}
+              </span>
+            )}
             <div className="mt-1 flex items-center gap-2">
               <span className={`text-sm font-medium ${hasPromo ? 'text-rouge' : 'text-gray-600'}`}>
                 {formatPrice(effectivePrice)}
@@ -87,7 +102,7 @@ export default function CartItemCard({ item, onUpdate, onRemove }: CartItemCardP
             <span className="w-10 text-center text-sm font-semibold text-noir">{quantity}</span>
             <button
               onClick={() => onUpdate(quantity + 1)}
-              disabled={quantity >= stock}
+              disabled={quantity >= effectiveStock}
               aria-label="Augmenter la quantité"
               className="flex h-8 w-8 items-center justify-center text-noir transition-colors hover:bg-gray-50 disabled:opacity-40"
             >

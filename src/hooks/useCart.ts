@@ -41,19 +41,25 @@ export function useCart() {
     });
   }, []);
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
+  const removeItem = useCallback((productId: string, variant?: string) => {
+    setItems((prev) =>
+      prev.filter(
+        (i) => !(i.product.id === productId && (i.variant ?? '') === (variant ?? '')),
+      ),
+    );
   }, []);
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((productId: string, quantity: number, variant?: string) => {
     if (quantity <= 0) {
-      removeItem(productId);
+      removeItem(productId, variant);
       return;
     }
     setItems((prev) =>
       prev.map((i) =>
-        i.product.id === productId ? { ...i, quantity } : i
-      )
+        i.product.id === productId && (i.variant ?? '') === (variant ?? '')
+          ? { ...i, quantity }
+          : i,
+      ),
     );
   }, [removeItem]);
 
