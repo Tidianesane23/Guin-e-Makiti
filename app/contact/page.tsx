@@ -13,14 +13,14 @@ const INFO_CARDS: { icon: IconDefinition; title: string; lines: string[]; color:
   {
     icon: faPhone,
     title: 'Téléphone',
-    lines: ['+224 6XX XX XX XX', 'Lun – Sam, 8h – 20h'],
+    lines: ['+224 620 32 69 81', 'Lun – Sam, 8h – 20h'],
     color: 'text-rouge',
     bg: 'bg-rouge/10',
   },
   {
     icon: faMapMarkerAlt,
     title: 'Adresse',
-    lines: ['Kaloum, Conakry', 'République de Guinée'],
+    lines: ['Conakry', 'République de Guinée'],
     color: 'text-blue-500',
     bg: 'bg-blue-50',
   },
