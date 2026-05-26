@@ -86,7 +86,7 @@ export default function QuickOrderModal({ product, quantity, onClose, initialVar
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-bold text-noir">Vos coordonnées</h2>
           <button
-            onClick={onClose}
+            onClick={() => onClose()}
             className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100"
           >
             <FontAwesomeIcon icon={faTimes} style={{ fontSize: 18 }} />
