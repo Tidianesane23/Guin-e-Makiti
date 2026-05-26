@@ -28,7 +28,14 @@ export default function ProductInfo({ product, selectedVariant = '', onVariantCh
   const variants    = (product.variant_names ?? []).filter(Boolean);
   const hasVariants = variants.length > 1;
 
-  const isOutOfStock   = localStock === 0;
+  const variantIdx  = selectedVariant
+    ? (product.variant_names ?? []).indexOf(selectedVariant)
+    : -1;
+  const variantStock = variantIdx >= 0 && product.variant_stocks?.length
+    ? (product.variant_stocks[variantIdx] ?? localStock)
+    : localStock;
+
+  const isOutOfStock   = variantStock === 0;
   const hasPromo       = promo_price !== undefined && promo_price < price;
   const effectivePrice = promo_price ?? price;
   const discount       = hasPromo ? Math.round(((price - promo_price!) / price) * 100) : 0;
@@ -83,13 +90,16 @@ export default function ProductInfo({ product, selectedVariant = '', onVariantCh
           </p>
           <div className="flex flex-wrap gap-2">
             {variants.map((v, i) => {
-              const img = product.images?.[i];
+              const img  = product.images?.[i];
+              const stk  = product.variant_stocks?.[i] ?? null;
+              const outOfStock = stk !== null && stk === 0;
               return (
                 <button
                   key={v}
                   type="button"
-                  onClick={() => onVariantChange?.(v)}
-                  className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-medium transition-all ${
+                  onClick={() => !outOfStock && onVariantChange?.(v)}
+                  disabled={outOfStock}
+                  className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
                     selectedVariant === v
                       ? 'border-rouge bg-rouge/5 text-rouge shadow-sm'
                       : 'border-gray-200 text-gray-600 hover:border-gray-300'
@@ -99,7 +109,14 @@ export default function ProductInfo({ product, selectedVariant = '', onVariantCh
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={img} alt={v} className="h-7 w-7 rounded-lg object-cover" />
                   )}
-                  {v}
+                  <span>
+                    {v}
+                    {stk !== null && (
+                      <span className="ml-1 text-[11px] font-normal text-gray-400">
+                        ({stk > 0 ? `${stk} restants` : 'épuisé'})
+                      </span>
+                    )}
+                  </span>
                 </button>
               );
             })}
@@ -111,7 +128,7 @@ export default function ProductInfo({ product, selectedVariant = '', onVariantCh
       <p className="text-sm leading-relaxed text-gray-600">{description}</p>
 
       {/* Stock indicator */}
-      <StockIndicator stock={localStock} />
+      <StockIndicator stock={variantStock} />
 
       {/* Quantity + Add to cart */}
       {!isOutOfStock && (
@@ -128,7 +145,7 @@ export default function ProductInfo({ product, selectedVariant = '', onVariantCh
             <span className="w-12 text-center text-sm font-semibold text-noir">{quantity}</span>
             <button
               onClick={() => setQuantity((q) => Math.min(localStock, q + 1))}
-              disabled={quantity >= localStock}
+              disabled={quantity >= variantStock}
               aria-label="Augmenter la quantité"
               className="flex h-10 w-10 items-center justify-center text-noir transition-colors hover:bg-gray-50 disabled:opacity-40"
             >

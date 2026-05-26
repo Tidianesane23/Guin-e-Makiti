@@ -114,7 +114,7 @@ function ConfirmForm({ order, onSuccess }: ConfirmFormProps) {
       const stockItems = order.items.filter((item) => item.product?.id);
       console.log('[stock] items to decrement:', stockItems.map(i => ({ id: i.product.id, qty: i.quantity })));
       const results = await Promise.allSettled(
-        stockItems.map((item) => decrementStock(item.product.id, item.quantity)),
+        stockItems.map((item) => decrementStock(item.product.id, item.quantity, item.variant)),
       );
       results.forEach((r, i) => {
         if (r.status === 'rejected') console.error('[stock] decrement rejected:', stockItems[i]?.product?.id, r.reason);

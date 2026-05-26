@@ -22,6 +22,7 @@ export interface ProductFormData {
   category_id: string;
   images: string[];
   variant_names: string[];
+  variant_stocks: number[];
   stock: number;
   is_active: boolean;
   is_featured: boolean;
@@ -41,7 +42,8 @@ function mapProduct(row: any): Product {
     promo_price:     row.promo_price ?? undefined,
     image_url:       (row.images as string[])?.[0] ?? '',
     images:          row.images ?? [],
-    variant_names:   row.variant_names ?? [],
+    variant_names:   row.variant_names  ?? [],
+    variant_stocks:  row.variant_stocks ?? [],
     category_id:     row.category_id,
     category:        row.category as Category | undefined,
     stock:           row.stock,
@@ -229,10 +231,12 @@ export async function toggleProductActive(
 export async function decrementStock(
   productId: string,
   quantity: number,
+  variant?: string,
 ): Promise<{ success: boolean; newStock: number }> {
   const { data, error } = await browserClient.rpc('decrement_stock', {
-    product_id: productId,
-    qty: quantity,
+    product_id:   productId,
+    qty:          quantity,
+    variant_name: variant ?? null,
   });
 
   if (error) {

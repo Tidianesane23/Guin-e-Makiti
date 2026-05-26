@@ -44,8 +44,9 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
   const [chars, setChars] = useState<{ key: string; value: string }[]>(
     Object.entries(product?.characteristics ?? {}).map(([key, value]) => ({ key, value })),
   );
-  const [images,       setImages]       = useState<string[]>(product?.images ?? []);
-  const [variantNames, setVariantNames] = useState<string[]>(product?.variant_names ?? []);
+  const [images,         setImages]         = useState<string[]>(product?.images ?? []);
+  const [variantNames,   setVariantNames]   = useState<string[]>(product?.variant_names  ?? []);
+  const [variantStocks,  setVariantStocks]  = useState<number[]>(product?.variant_stocks ?? []);
   const [errors,    setErrors]    = useState<Record<string, string>>({});
   const [saving,    setSaving]    = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -63,9 +64,12 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
   const removeImage = (i: number) => {
     setImages((imgs) => imgs.filter((_, idx) => idx !== i));
     setVariantNames((vn) => vn.filter((_, idx) => idx !== i));
+    setVariantStocks((vs) => vs.filter((_, idx) => idx !== i));
   };
   const updateVariantName = (i: number, v: string) =>
     setVariantNames((vn) => vn.map((n, idx) => (idx === i ? v : n)));
+  const updateVariantStock = (i: number, v: number) =>
+    setVariantStocks((vs) => vs.map((s, idx) => (idx === i ? v : s)));
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -76,6 +80,7 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
       const url = await uploadProductImage(file, folder);
       setImages((imgs) => [...imgs, url]);
       setVariantNames((vn) => [...vn, '']);
+      setVariantStocks((vs) => [...vs, 0]);
     } catch {
       // upload failed silently; user can retry
     } finally {
@@ -116,7 +121,11 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
         chars.filter((c) => c.key.trim()).map((c) => [c.key.trim(), c.value]),
       ),
       images,
-      variant_names: variantNames,
+      variant_names:  variantNames,
+      variant_stocks: variantStocks,
+      stock: variantStocks.length > 0
+        ? variantStocks.reduce((s, n) => s + (Number(n) || 0), 0)
+        : Number(stock) || 0,
     };
 
     try {
@@ -292,10 +301,21 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
                       placeholder={`Nom modèle ${i + 1} (ex: Rouge, Taille L…)`}
                       className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-rouge focus:ring-1 focus:ring-rouge"
                     />
+                    <input
+                      type="number"
+                      min={0}
+                      value={variantStocks[i] ?? 0}
+                      onChange={(e) => updateVariantStock(i, Number(e.target.value))}
+                      placeholder="Stock"
+                      className="w-20 shrink-0 rounded-xl border border-gray-200 px-3 py-2 text-center text-sm outline-none focus:border-rouge focus:ring-1 focus:ring-rouge"
+                    />
                   </div>
                 ))}
                 {images.length > 1 && (
-                  <p className="text-xs text-gray-400">Nommez chaque modèle pour que le client puisse choisir au moment de la commande.</p>
+                  <p className="text-xs text-gray-400">
+                    Nommez chaque modèle et indiquez son stock.
+                    Stock total calculé&nbsp;: <strong>{variantStocks.reduce((s, n) => s + (Number(n) || 0), 0)}</strong> unités.
+                  </p>
                 )}
               </div>
             )}

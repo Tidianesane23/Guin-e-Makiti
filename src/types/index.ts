@@ -24,6 +24,7 @@ export interface Product {
   image_url: string;
   images?: string[];
   variant_names?: string[];
+  variant_stocks?: number[];
   category_id: string;
   category?: Category;
   stock: number;
