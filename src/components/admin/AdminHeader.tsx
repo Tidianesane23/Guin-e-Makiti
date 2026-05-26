@@ -1,6 +1,7 @@
 'use client';
 
-import { Menu } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBars } from '@/src/lib/icons';
 import { usePathname } from 'next/navigation';
 
 const PAGE_TITLES: Record<string, string> = {
@@ -29,7 +30,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         aria-label="Menu"
         className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 transition-colors lg:hidden"
       >
-        <Menu size={20} />
+        <FontAwesomeIcon icon={faBars} style={{ fontSize: 20 }} />
       </button>
       <h1 className="text-base font-semibold text-noir">{title}</h1>
     </header>

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo, FormEvent } from 'react';
-import { Plus, X, Minus } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback, FormEvent } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faTimes, faMinus, faChevronLeft, faChevronRight, faSearch, faPhone, faUser, faStar } from '@/src/lib/icons';
 import {
   getOrders,
   createOrder,
@@ -14,6 +15,8 @@ import type { Order, OrderStatus, Product, CartItem } from '@/src/types';
 import Button from '@/src/components/ui/Button';
 import OrdersTable, { type AdminOrder } from '@/src/components/admin/OrdersTable';
 
+const ITEMS_PER_PAGE = 10;
+
 type StatusFilter = 'all' | OrderStatus;
 
 const FILTER_LABELS: Record<StatusFilter, string> = {
@@ -23,6 +26,22 @@ const FILTER_LABELS: Record<StatusFilter, string> = {
   en_livraison: 'En livraison',
   livre:        'Livré',
   annule:       'Annulé',
+};
+
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  en_attente:   'En attente',
+  confirme:     'Confirmé',
+  en_livraison: 'En livraison',
+  livre:        'Livré',
+  annule:       'Annulé',
+};
+
+const STATUS_STYLES: Record<OrderStatus, { background: string; color: string }> = {
+  en_attente:   { background: '#FBC02D22', color: '#7a5c00' },
+  confirme:     { background: '#1565C022', color: '#1565C0' },
+  en_livraison: { background: '#E6510022', color: '#E65100' },
+  livre:        { background: '#00994422', color: '#009944' },
+  annule:       { background: '#75757522', color: '#757575' },
 };
 
 interface NewOrderLine { productId: string; quantity: number }
@@ -42,12 +61,149 @@ function orderToAdmin(order: Order): AdminOrder {
   };
 }
 
+// ─── Order detail modal ───────────────────────────────────────────────────────
+
+function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => void }) {
+  const st = STATUS_STYLES[order.status];
+  const date = new Date(order.created_at).toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+          <div>
+            <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Commande</p>
+            <p className="font-mono font-bold text-noir">#{order.id.slice(0, 8).toUpperCase()}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span
+              className="rounded-full px-3 py-1 text-xs font-bold"
+              style={{ background: st.background, color: st.color }}
+            >
+              {STATUS_LABELS[order.status]}
+            </span>
+            <button
+              onClick={onClose}
+              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors"
+            >
+              <FontAwesomeIcon icon={faTimes} style={{ fontSize: 18 }} />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-0 divide-y divide-gray-50 max-h-[70vh] overflow-y-auto">
+          {/* Customer */}
+          <div className="px-6 py-4 flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Client</p>
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white shrink-0"
+                style={{ background: '#C8860A' }}
+              >
+                {order.customer_name.slice(0, 2).toUpperCase()}
+              </div>
+              <div>
+                <p className="font-semibold text-noir flex items-center gap-1.5">
+                  <FontAwesomeIcon icon={faUser} style={{ fontSize: 12, color: '#9CA3AF' }} />
+                  {order.customer_name}
+                </p>
+                <a
+                  href={`https://wa.me/${order.customer_phone.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-[#25D366] font-medium flex items-center gap-1.5 hover:opacity-80"
+                >
+                  <FontAwesomeIcon icon={faPhone} style={{ fontSize: 11 }} />
+                  {order.customer_phone}
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Items */}
+          <div className="px-6 py-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Articles ({order.items.length})
+            </p>
+            <div className="flex flex-col gap-3">
+              {order.items.map((item, i) => {
+                const price = item.product?.promo_price ?? item.product?.price ?? 0;
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    {item.product?.image_url ? (
+                      <img
+                        src={item.product.image_url}
+                        alt={item.product.name}
+                        className="h-12 w-12 rounded-xl object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-xl bg-gray-100 shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-noir truncate">
+                        {item.product?.name ?? 'Produit'}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {formatPrice(price)} × {item.quantity}
+                      </p>
+                    </div>
+                    <p className="text-sm font-bold text-noir shrink-0">
+                      {formatPrice(price * item.quantity)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Total + notes */}
+          <div className="px-6 py-4 flex flex-col gap-3">
+            <div className="flex items-center justify-between rounded-xl bg-gray-50 px-4 py-3">
+              <span className="text-sm font-semibold text-gray-600">Total</span>
+              <span className="text-lg font-bold" style={{ color: '#C8860A' }}>
+                {formatPrice(order.total)}
+              </span>
+            </div>
+            {order.notes && (
+              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                <p className="text-xs font-semibold text-gray-400 mb-1">Notes client</p>
+                <p className="text-sm text-gray-600">{order.notes}</p>
+              </div>
+            )}
+            <div className="flex items-center justify-between text-xs text-gray-400">
+              <span>Passée le {date}</span>
+              {order.customer_confirmed && (
+                <span className="flex items-center gap-1 font-semibold" style={{ color: '#009944' }}>
+                  <FontAwesomeIcon icon={faStar} style={{ fontSize: 10 }} />
+                  Réceptionnée & évaluée
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
 export default function CommandesAdminPage() {
   const [orders,       setOrders]       = useState<Order[]>([]);
   const [products,     setProducts]     = useState<Product[]>([]);
   const [isLoading,    setIsLoading]    = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [searchQuery,  setSearchQuery]  = useState('');
+  const [page,         setPage]         = useState(1);
   const [showModal,    setShowModal]    = useState(false);
+  const [detailOrder,  setDetailOrder]  = useState<Order | null>(null);
+  const [toast,        setToast]        = useState<{ msg: string; ok: boolean } | null>(null);
 
   const [newName,  setNewName]  = useState('');
   const [newPhone, setNewPhone] = useState('');
@@ -69,21 +225,47 @@ export default function CommandesAdminPage() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const filtered = useMemo(() =>
-    statusFilter === 'all' ? orders : orders.filter((o) => o.status === statusFilter),
-  [orders, statusFilter]);
+  const filtered = useMemo(() => {
+    let result = statusFilter === 'all' ? orders : orders.filter((o) => o.status === statusFilter);
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (o) =>
+          o.customer_name.toLowerCase().includes(q) ||
+          o.customer_phone.replace(/\D/g, '').includes(q.replace(/\D/g, '')),
+      );
+    }
+    return result;
+  }, [orders, statusFilter, searchQuery]);
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated  = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+  const showToast = useCallback((msg: string, ok: boolean) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
 
   const handleStatusChange = async (id: string, status: OrderStatus) => {
+    const prevStatus = orders.find((o) => o.id === id)?.status;
+    setOrders((os) => os.map((o) => o.id === id ? { ...o, status } : o));
     try {
       await updateOrderStatus(id, status);
-      setOrders((os) => os.map((o) => o.id === id ? { ...o, status } : o));
-    } catch { /* ignore */ }
+      showToast('Statut mis à jour', true);
+    } catch {
+      if (prevStatus) setOrders((os) => os.map((o) => o.id === id ? { ...o, status: prevStatus } : o));
+      showToast('Erreur lors de la mise à jour', false);
+    }
+  };
+
+  const handleRowClick = (id: string) => {
+    const order = orders.find((o) => o.id === id) ?? null;
+    setDetailOrder(order);
   };
 
   const newOrderTotal = lines.reduce((sum, l) => {
     const p = products.find((pr) => pr.id === l.productId);
-    if (!p) return sum;
-    return sum + (p.promo_price ?? p.price) * l.quantity;
+    return p ? sum + (p.promo_price ?? p.price) * l.quantity : sum;
   }, 0);
 
   const addLine    = () => setLines((ls) => [...ls, { productId: '', quantity: 1 }]);
@@ -120,6 +302,7 @@ export default function CommandesAdminPage() {
       setOrders((os) => [order, ...os]);
       setShowModal(false);
       resetModal();
+      showToast('Commande créée', true);
     } catch {
       setFormErr('Erreur lors de la création. Réessayez.');
     }
@@ -134,7 +317,7 @@ export default function CommandesAdminPage() {
           {(Object.keys(FILTER_LABELS) as StatusFilter[]).map((s) => (
             <button
               key={s}
-              onClick={() => setStatusFilter(s)}
+              onClick={() => { setStatusFilter(s); setPage(1); }}
               className={cn(
                 'rounded-full px-3 py-1 text-xs font-semibold transition-colors',
                 statusFilter === s ? 'bg-noir text-white' : 'bg-white text-gray-600 hover:bg-gray-100',
@@ -144,9 +327,32 @@ export default function CommandesAdminPage() {
             </button>
           ))}
         </div>
-        <Button variant="primary" iconLeft={<Plus size={16} />} onClick={() => setShowModal(true)}>
+        <Button variant="primary" iconLeft={<FontAwesomeIcon icon={faPlus} style={{ fontSize: 16 }} />} onClick={() => setShowModal(true)}>
           Nouvelle commande
         </Button>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <FontAwesomeIcon
+          icon={faSearch}
+          style={{ fontSize: 14, color: '#9CA3AF' }}
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2"
+        />
+        <input
+          value={searchQuery}
+          onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+          placeholder="Rechercher par nom ou numéro de téléphone…"
+          className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none transition-colors focus:border-noir focus:ring-1 focus:ring-noir"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => { setSearchQuery(''); setPage(1); }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <FontAwesomeIcon icon={faTimes} style={{ fontSize: 13 }} />
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -155,11 +361,56 @@ export default function CommandesAdminPage() {
           <div className="py-16 text-center text-sm text-gray-400">Chargement…</div>
         ) : (
           <OrdersTable
-            orders={filtered.map(orderToAdmin)}
+            orders={paginated.map(orderToAdmin)}
             onStatusChange={handleStatusChange}
+            onRowClick={handleRowClick}
           />
         )}
+
+        {/* Pagination */}
+        {!isLoading && (
+          <div className="flex items-center justify-between border-t border-gray-100 px-4 py-3">
+            <p className="text-xs text-gray-400">
+              {filtered.length} commande{filtered.length !== 1 ? 's' : ''}
+              {searchQuery && ` pour "${searchQuery}"`}
+            </p>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-noir disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 14 }} />
+                </button>
+                <span className="px-2 text-sm font-medium text-noir">{page} / {totalPages}</span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-noir disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                >
+                  <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: 14 }} />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      {/* Toast */}
+      {toast && (
+        <div
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white shadow-lg"
+          style={{ background: toast.ok ? '#009944' : '#C0392B' }}
+        >
+          {toast.msg}
+        </div>
+      )}
+
+      {/* Order detail modal */}
+      {detailOrder && (
+        <OrderDetailModal order={detailOrder} onClose={() => setDetailOrder(null)} />
+      )}
 
       {/* New order modal */}
       {showModal && (
@@ -171,7 +422,7 @@ export default function CommandesAdminPage() {
                 onClick={() => { setShowModal(false); resetModal(); }}
                 className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors"
               >
-                <X size={18} />
+                <FontAwesomeIcon icon={faTimes} style={{ fontSize: 18 }} />
               </button>
             </div>
 
@@ -179,63 +430,40 @@ export default function CommandesAdminPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-medium text-noir">Nom client</label>
-                  <input
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Mamadou Diallo"
-                    className={inputCls}
-                  />
+                  <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Mamadou Diallo" className={inputCls} />
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-medium text-noir">Téléphone</label>
-                  <input
-                    value={newPhone}
-                    onChange={(e) => setNewPhone(e.target.value)}
-                    placeholder="224621000000"
-                    className={inputCls}
-                  />
+                  <input value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder="224621000000" className={inputCls} />
                 </div>
               </div>
 
-              {/* Products */}
               <div>
                 <div className="mb-2 flex items-center justify-between">
                   <label className="text-sm font-medium text-noir">Produits</label>
-                  <button type="button" onClick={addLine}
-                    className="flex items-center gap-1 text-xs font-semibold text-rouge hover:opacity-70">
-                    <Plus size={13} /> Ajouter
+                  <button type="button" onClick={addLine} className="flex items-center gap-1 text-xs font-semibold text-rouge hover:opacity-70">
+                    <FontAwesomeIcon icon={faPlus} style={{ fontSize: 13 }} /> Ajouter
                   </button>
                 </div>
                 <div className="flex flex-col gap-2">
                   {lines.map((l, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <select
-                        value={l.productId}
-                        onChange={(e) => updateLine(i, 'productId', e.target.value)}
-                        className={inputCls + ' flex-1'}
-                      >
+                      <select value={l.productId} onChange={(e) => updateLine(i, 'productId', e.target.value)} className={inputCls + ' flex-1'}>
                         <option value="">Sélectionner...</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
+                        {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                       </select>
                       <div className="flex items-center overflow-hidden rounded-lg border border-gray-200">
-                        <button type="button"
-                          onClick={() => updateLine(i, 'quantity', Math.max(1, l.quantity - 1))}
-                          className="flex h-9 w-8 items-center justify-center text-noir hover:bg-gray-50">
-                          <Minus size={13} />
+                        <button type="button" onClick={() => updateLine(i, 'quantity', Math.max(1, l.quantity - 1))} className="flex h-9 w-8 items-center justify-center text-noir hover:bg-gray-50">
+                          <FontAwesomeIcon icon={faMinus} style={{ fontSize: 13 }} />
                         </button>
                         <span className="w-8 text-center text-sm font-semibold">{l.quantity}</span>
-                        <button type="button"
-                          onClick={() => updateLine(i, 'quantity', l.quantity + 1)}
-                          className="flex h-9 w-8 items-center justify-center text-noir hover:bg-gray-50">
-                          <Plus size={13} />
+                        <button type="button" onClick={() => updateLine(i, 'quantity', l.quantity + 1)} className="flex h-9 w-8 items-center justify-center text-noir hover:bg-gray-50">
+                          <FontAwesomeIcon icon={faPlus} style={{ fontSize: 13 }} />
                         </button>
                       </div>
                       {lines.length > 1 && (
-                        <button type="button" onClick={() => removeLine(i)}
-                          className="rounded-lg p-1.5 text-gray-400 hover:text-rouge transition-colors">
-                          <X size={15} />
+                        <button type="button" onClick={() => removeLine(i)} className="rounded-lg p-1.5 text-gray-400 hover:text-rouge transition-colors">
+                          <FontAwesomeIcon icon={faTimes} style={{ fontSize: 15 }} />
                         </button>
                       )}
                     </div>
@@ -243,16 +471,9 @@ export default function CommandesAdminPage() {
                 </div>
               </div>
 
-              {/* Notes */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-noir">Notes</label>
-                <textarea
-                  value={newNotes}
-                  onChange={(e) => setNewNotes(e.target.value)}
-                  rows={2}
-                  placeholder="Instructions de livraison, remarques..."
-                  className={inputCls + ' resize-none'}
-                />
+                <textarea value={newNotes} onChange={(e) => setNewNotes(e.target.value)} rows={2} placeholder="Instructions de livraison…" className={inputCls + ' resize-none'} />
               </div>
 
               {newOrderTotal > 0 && (
@@ -265,12 +486,8 @@ export default function CommandesAdminPage() {
               {formErr && <p className="text-xs text-rouge">{formErr}</p>}
 
               <div className="flex gap-3 pt-1">
-                <Button type="button" variant="ghost" fullWidth onClick={() => { setShowModal(false); resetModal(); }}>
-                  Annuler
-                </Button>
-                <Button type="submit" variant="primary" fullWidth loading={creating}>
-                  Enregistrer
-                </Button>
+                <Button type="button" variant="ghost" fullWidth onClick={() => { setShowModal(false); resetModal(); }}>Annuler</Button>
+                <Button type="submit" variant="primary" fullWidth loading={creating}>Enregistrer</Button>
               </div>
             </form>
           </div>

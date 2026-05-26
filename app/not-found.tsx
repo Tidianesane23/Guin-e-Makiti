@@ -1,15 +1,16 @@
 import Link from 'next/link';
-import { SearchX } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@/src/lib/icons';
 
 export default function NotFound() {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-4 text-center">
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
-        <SearchX size={36} className="text-gray-400" />
+        <FontAwesomeIcon icon={faSearch} style={{ fontSize: 36 }} className="text-gray-400" />
       </div>
 
       <div>
-        <p className="text-6xl font-bold text-gray-200">404</p>
+        <p className="text-7xl font-extrabold" style={{ color: '#C8860A' }}>404</p>
         <h1 className="mt-2 text-xl font-bold text-noir">Page introuvable</h1>
         <p className="mt-1 text-sm text-gray-500 max-w-xs mx-auto">
           La page que vous recherchez n&apos;existe pas ou a été déplacée.

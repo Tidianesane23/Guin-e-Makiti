@@ -4,7 +4,8 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { CheckCircle2, MessageCircle, ShoppingBag } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCheckCircle, faCommentDots, faShoppingBag, faSearch } from '@/src/lib/icons';
 import { formatPrice } from '@/src/lib/formatters';
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '224XXXXXXXXX';
@@ -33,7 +34,7 @@ function ConfirmationContent() {
           className="mb-6 flex justify-center"
         >
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
-            <CheckCircle2 size={52} className="text-green-500" strokeWidth={1.5} />
+            <FontAwesomeIcon icon={faCheckCircle} style={{ fontSize: 52 }} className="text-green-500" />
           </div>
         </motion.div>
 
@@ -110,24 +111,34 @@ function ConfirmationContent() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.4 }}
-          className="mt-6 flex flex-col gap-3 sm:flex-row"
+          className="mt-6 flex flex-col gap-3"
         >
           <Link
-            href="/boutique"
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 transition-all hover:border-noir hover:text-noir"
+            href="/suivi-commande"
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: '#C8860A' }}
           >
-            <ShoppingBag size={16} />
-            Continuer mes achats
+            <FontAwesomeIcon icon={faSearch} style={{ fontSize: 16 }} />
+            Suivre ma commande
           </Link>
-          <a
-            href={`https://wa.me/${WA_NUMBER}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          >
-            <MessageCircle size={16} />
-            Ouvrir WhatsApp
-          </a>
+          <div className="flex gap-3">
+            <Link
+              href="/boutique"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-gray-200 px-5 py-3 text-sm font-semibold text-gray-700 transition-all hover:border-noir hover:text-noir"
+            >
+              <FontAwesomeIcon icon={faShoppingBag} style={{ fontSize: 16 }} />
+              Continuer
+            </Link>
+            <a
+              href={`https://wa.me/${WA_NUMBER}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+            >
+              <FontAwesomeIcon icon={faCommentDots} style={{ fontSize: 16 }} />
+              WhatsApp
+            </a>
+          </div>
         </motion.div>
       </div>
     </div>

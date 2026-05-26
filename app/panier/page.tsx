@@ -1,7 +1,8 @@
 'use client';
 
 import { AnimatePresence } from 'framer-motion';
-import { ShoppingCart } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faShoppingCart } from '@/src/lib/icons';
 import Link from 'next/link';
 import { useCart } from '@/src/hooks/useCart';
 import CartItemCard from '@/src/components/shop/CartItem';
@@ -39,7 +40,7 @@ export default function PanierPage() {
           <h1 className="text-2xl font-bold text-noir md:text-3xl">Mon Panier</h1>
 
           <div className="flex flex-col items-center gap-5 py-24 text-center">
-            <ShoppingCart size={80} className="text-gray-200" />
+            <FontAwesomeIcon icon={faShoppingCart} style={{ fontSize: 80 }} className="text-gray-200" />
             <div>
               <p className="text-xl font-bold text-noir">Votre panier est vide</p>
               <p className="mx-auto mt-1 max-w-xs text-sm text-gray-500">

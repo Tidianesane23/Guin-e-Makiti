@@ -14,33 +14,15 @@ export default function manifest(): MetadataRoute.Manifest {
     lang:             'fr',
     icons: [
       {
-        src:     '/icons/icon-192.png',
+        src:     '/logo.jpeg',
         sizes:   '192x192',
-        type:    'image/png',
+        type:    'image/jpeg',
         purpose: 'any',
       },
       {
-        src:     '/icons/icon-512.png',
+        src:     '/logo.jpeg',
         sizes:   '512x512',
-        type:    'image/png',
-        purpose: 'any',
-      },
-      {
-        src:     '/icons/icon-maskable-192.png',
-        sizes:   '192x192',
-        type:    'image/png',
-        purpose: 'maskable',
-      },
-      {
-        src:     '/icons/icon-maskable-512.png',
-        sizes:   '512x512',
-        type:    'image/png',
-        purpose: 'maskable',
-      },
-      {
-        src:     '/icons/icon.svg',
-        sizes:   'any',
-        type:    'image/svg+xml',
+        type:    'image/jpeg',
         purpose: 'any',
       },
     ],
@@ -49,7 +31,6 @@ export default function manifest(): MetadataRoute.Manifest {
         src:          '/screenshots/home.png',
         sizes:        '1080x1920',
         type:         'image/png',
-        // @ts-expect-error — form_factor is valid in the spec but not yet in TS types
         form_factor:  'narrow',
         label:        'Page d\'accueil Guinée Makiti',
       },

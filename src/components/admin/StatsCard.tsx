@@ -1,10 +1,11 @@
-import { ElementType } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { cn } from '@/src/lib/utils';
 
 interface StatsCardProps {
   title: string;
   value: string;
-  icon: ElementType;
+  icon: IconDefinition;
   color: 'blue' | 'green' | 'orange' | 'red';
   trend?: { label: string; up: boolean };
 }
@@ -16,7 +17,7 @@ const colorMap = {
   red:    { bg: 'bg-red-50',    icon: 'text-rouge'       },
 };
 
-export default function StatsCard({ title, value, icon: Icon, color, trend }: StatsCardProps) {
+export default function StatsCard({ title, value, icon, color, trend }: StatsCardProps) {
   const c = colorMap[color];
   return (
     <div className="rounded-2xl bg-white p-5 shadow-sm">
@@ -31,7 +32,7 @@ export default function StatsCard({ title, value, icon: Icon, color, trend }: St
           )}
         </div>
         <div className={cn('rounded-xl p-3', c.bg)}>
-          <Icon size={22} className={c.icon} />
+          <FontAwesomeIcon icon={icon} style={{ fontSize: 22 }} className={c.icon} />
         </div>
       </div>
     </div>

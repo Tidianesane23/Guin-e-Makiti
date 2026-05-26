@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronRight } from '@/src/lib/icons';
 import { createSupabaseServerClient } from '@/src/lib/supabase-server';
 import { getRelatedProducts } from '@/src/lib/services/products.service';
 import ProductCard from '@/src/components/ui/ProductCard';
@@ -24,7 +25,7 @@ export default async function RelatedProducts({ currentProductId, categoryId }: 
           className="flex items-center gap-1 text-sm font-medium text-rouge hover:opacity-70 transition-opacity"
         >
           Voir tout
-          <ChevronRight size={15} />
+          <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: 15 }} />
         </Link>
       </div>
 

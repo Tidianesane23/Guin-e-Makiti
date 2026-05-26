@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { X } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes } from '@/src/lib/icons';
 import type { Category } from '@/src/types';
 import Button from '@/src/components/ui/Button';
 
@@ -56,7 +57,7 @@ export default function CategoryForm({ category, onClose, onSave }: CategoryForm
             {category ? 'Modifier la catégorie' : 'Nouvelle catégorie'}
           </h2>
           <button onClick={onClose} className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors">
-            <X size={18} />
+            <FontAwesomeIcon icon={faTimes} style={{ fontSize: 18 }} />
           </button>
         </div>
 

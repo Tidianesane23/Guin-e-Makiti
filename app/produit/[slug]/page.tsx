@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronRight } from '@/src/lib/icons';
 import { createSupabaseServerClient } from '@/src/lib/supabase-server';
 import { getProductBySlug } from '@/src/lib/services/products.service';
 import ProductGallery from '@/src/components/shop/ProductGallery';
@@ -43,11 +44,11 @@ export default async function ProduitPage({ params }: Props) {
         {/* Breadcrumb */}
         <nav aria-label="Fil d'Ariane" className="mb-6 flex flex-wrap items-center gap-1 text-sm text-gray-500">
           <Link href="/" className="transition-colors hover:text-rouge">Accueil</Link>
-          <ChevronRight size={14} className="shrink-0" />
+          <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: 14 }} className="shrink-0" />
           <Link href="/boutique" className="transition-colors hover:text-rouge">Boutique</Link>
           {category && (
             <>
-              <ChevronRight size={14} className="shrink-0" />
+              <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: 14 }} className="shrink-0" />
               <Link
                 href={`/boutique?categorie=${category.slug}`}
                 className="transition-colors hover:text-rouge"
@@ -56,7 +57,7 @@ export default async function ProduitPage({ params }: Props) {
               </Link>
             </>
           )}
-          <ChevronRight size={14} className="shrink-0" />
+          <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: 14 }} className="shrink-0" />
           <span className="line-clamp-1 font-medium text-noir">{product.name}</span>
         </nav>
 

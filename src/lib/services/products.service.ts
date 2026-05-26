@@ -132,6 +132,7 @@ export async function getFeaturedProducts(limit = 8, client?: SupabaseClient): P
     .select('*, category:categories(id, name, slug, image_url, created_at)')
     .eq('is_active', true)
     .eq('is_featured', true)
+    .gt('stock', 0)
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -221,4 +222,40 @@ export async function toggleProductActive(
     .update({ is_active })
     .eq('id', id);
   if (error) throw error;
+}
+
+export async function decrementStock(
+  productId: string,
+  quantity: number,
+): Promise<{ success: boolean; newStock: number }> {
+  const { data, error } = await browserClient.rpc('decrement_stock', {
+    product_id: productId,
+    qty: quantity,
+  });
+
+  if (error) {
+    console.error('[decrementStock] RPC error:', error.message, error.code, error.details);
+    return { success: false, newStock: 0 };
+  }
+  if (data === null || data === undefined) {
+    console.error('[decrementStock] RPC returned null for product', productId);
+    return { success: false, newStock: 0 };
+  }
+  return { success: true, newStock: data as number };
+}
+
+export async function getLowStockProducts(
+  threshold = 5,
+  client?: SupabaseClient,
+): Promise<Product[]> {
+  const { data, error } = await db(client)
+    .from('products')
+    .select('*, category:categories(id, name, slug, image_url, created_at)')
+    .eq('is_active', true)
+    .gt('stock', 0)
+    .lte('stock', threshold)
+    .order('stock', { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []).map(mapProduct);
 }

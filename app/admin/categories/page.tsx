@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faEdit, faTrash, faMobileAlt, faHeadphones, faVolumeUp, faHome, faTshirt, faGem, faTag } from '@/src/lib/icons';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   getCategories,
   createCategory,
@@ -12,13 +14,13 @@ import type { Category } from '@/src/types';
 import Button from '@/src/components/ui/Button';
 import CategoryForm from '@/src/components/admin/CategoryForm';
 
-const EMOJI_MAP: Record<string, string> = {
-  smartphones:    '📱',
-  accessoires:    '🎧',
-  audio:          '🔊',
-  electromenager: '🏠',
-  mode:           '👗',
-  beaute:         '✨',
+const ICON_MAP: Record<string, IconDefinition> = {
+  smartphones:    faMobileAlt,
+  accessoires:    faHeadphones,
+  audio:          faVolumeUp,
+  electromenager: faHome,
+  mode:           faTshirt,
+  beaute:         faGem,
 };
 
 export default function CategoriesAdminPage() {
@@ -67,7 +69,7 @@ export default function CategoriesAdminPage() {
         <p className="text-sm text-gray-500">
           {isLoading ? '…' : `${categories.length} catégorie${categories.length !== 1 ? 's' : ''}`}
         </p>
-        <Button variant="primary" iconLeft={<Plus size={16} />} onClick={openCreate}>
+        <Button variant="primary" iconLeft={<FontAwesomeIcon icon={faPlus} style={{ fontSize: 16 }} />} onClick={openCreate}>
           Nouvelle catégorie
         </Button>
       </div>
@@ -79,7 +81,9 @@ export default function CategoriesAdminPage() {
           {categories.map((cat) => (
             <div key={cat.id} className="flex items-center justify-between gap-4 rounded-2xl bg-white p-5 shadow-sm">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">{EMOJI_MAP[cat.slug] ?? '🛍️'}</span>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: 'rgba(200,134,10,0.1)', color: '#C8860A' }}>
+                    <FontAwesomeIcon icon={ICON_MAP[cat.slug] ?? faTag} style={{ fontSize: 20 }} />
+                  </span>
                 <div>
                   <p className="font-semibold text-noir">{cat.name}</p>
                   <p className="text-xs text-gray-400">{cat.slug}</p>
@@ -91,14 +95,14 @@ export default function CategoriesAdminPage() {
                   className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-noir transition-colors"
                   aria-label="Modifier"
                 >
-                  <Edit2 size={16} />
+                  <FontAwesomeIcon icon={faEdit} style={{ fontSize: 16 }} />
                 </button>
                 <button
                   onClick={() => setDeleteId(cat.id)}
                   className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-rouge transition-colors"
                   aria-label="Supprimer"
                 >
-                  <Trash2 size={16} />
+                  <FontAwesomeIcon icon={faTrash} style={{ fontSize: 16 }} />
                 </button>
               </div>
             </div>

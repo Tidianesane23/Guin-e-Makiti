@@ -1,15 +1,148 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* Palette chaude */
+  --color-or:       #C8860A;
+  --color-bordeaux: #C0392B;
+  --color-brun:     #7A4A3A;
+  --color-dark:     #2C1A1A;
+  --color-footer:   #1C0A0A;
+
+  /* Anciens tokens (admin) */
   --color-rouge:  #E8001C;
   --color-jaune:  #FFB800;
   --color-vert:   #00A550;
   --color-noir:   #1A1A1A;
 
-  --font-sans: var(--font-poppins);
+  --font-sans: var(--font-jakarta);
+}
+
+:root {
+  --color-or:       #C8860A;
+  --color-bordeaux: #C0392B;
+  --color-brun:     #7A4A3A;
+  --color-dark:     #2C1A1A;
+  --color-footer:   #1C0A0A;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {
-  background: #ffffff;
-  color: #1A1A1A;
+  background: linear-gradient(135deg, #F7D9C4 0%, #FCE7DC 50%, #FFF1EE 100%);
+  background-attachment: fixed;
+  color: #2C1A1A;
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
 }
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+svg.svg-inline--fa {
+  max-width: 1em !important;
+  max-height: 1em !important;
+  width: 1em !important;
+  height: 1em !important;
+  display: inline-block !important;
+  vertical-align: middle;
+  overflow: visible;
+  box-sizing: content-box;
+}
+
+/* ── Logo font ──────────────────────── */
+.font-logo {
+  font-family: var(--font-fredoka), cursive;
+}
+
+/* ── Button shimmer ─────────────────── */
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transition: left 0.5s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+.btn-shimmer:hover::before {
+  left: 100%;
+}
+.btn-shimmer > *:not(.ripple-el) {
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Ripple on click ────────────────── */
+@keyframes ripple {
+  to { transform: scale(4); opacity: 0; }
+}
+.ripple-el {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple 0.5s linear;
+  background: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Shimmer text ───────────────────── */
+@keyframes shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg, #C8860A 0%, #C0392B 50%, #C8860A 100%);
+  background-size: 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+/* ── Float icon ─────────────────────── */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* ── Glow button ────────────────────── */
+@keyframes glow-or {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200,134,10,0.45), 0 4px 15px rgba(200,134,10,0.3); }
+  50%       { box-shadow: 0 0 0 9px rgba(200,134,10,0), 0 4px 15px rgba(200,134,10,0.3); }
+}
+.btn-glow-or {
+  animation: glow-or 2.2s ease-in-out infinite;
+}
+
+/* ── Pulse dot badge ────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+

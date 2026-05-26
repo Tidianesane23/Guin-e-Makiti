@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
-import { Search, X } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch, faTimes } from '@/src/lib/icons';
 import { cn } from '@/src/lib/utils';
 
 interface SearchBarProps {
@@ -32,8 +33,9 @@ export default function SearchBar({
 
   return (
     <div className={cn('relative', className)}>
-      <Search
-        size={17}
+      <FontAwesomeIcon
+        icon={faSearch}
+        style={{ fontSize: 17 }}
         className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
       />
       <input
@@ -50,7 +52,7 @@ export default function SearchBar({
           onClick={() => { setLocal(''); onChangeRef.current(''); }}
           className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-gray-400 hover:text-gray-600 transition-colors"
         >
-          <X size={15} />
+          <FontAwesomeIcon icon={faTimes} style={{ fontSize: 15 }} />
         </button>
       )}
     </div>

@@ -2,7 +2,8 @@
 
 import { useState, useRef, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, X, Upload, Loader2 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faTimes, faUpload, faSpinner } from '@/src/lib/icons';
 import type { Product, Category } from '@/src/types';
 import {
   createProduct,
@@ -225,7 +226,7 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
                 onClick={addChar}
                 className="flex items-center gap-1.5 text-xs font-semibold text-rouge hover:opacity-70 transition-opacity"
               >
-                <Plus size={14} /> Ajouter
+                <FontAwesomeIcon icon={faPlus} style={{ fontSize: 14 }} /> Ajouter
               </button>
             </div>
             <div className="flex flex-col gap-2">
@@ -251,7 +252,7 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
                     onClick={() => removeChar(i)}
                     className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-rouge transition-colors"
                   >
-                    <X size={15} />
+                    <FontAwesomeIcon icon={faTimes} style={{ fontSize: 15 }} />
                   </button>
                 </div>
               ))}
@@ -272,7 +273,7 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
                       onClick={() => removeImage(i)}
                       className="absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white hover:bg-black transition-colors"
                     >
-                      <X size={12} />
+                      <FontAwesomeIcon icon={faTimes} style={{ fontSize: 12 }} />
                     </button>
                   </div>
                 ))}
@@ -281,12 +282,12 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
             <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 py-6 text-sm text-gray-500 transition-colors hover:border-rouge hover:text-rouge">
               {uploading ? (
                 <>
-                  <Loader2 size={18} className="animate-spin" />
+                  <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 18 }} />
                   Téléchargement…
                 </>
               ) : (
                 <>
-                  <Upload size={18} />
+                  <FontAwesomeIcon icon={faUpload} style={{ fontSize: 18 }} />
                   Ajouter une image
                 </>
               )}

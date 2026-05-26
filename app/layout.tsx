@@ -1,12 +1,20 @@
 import type { Metadata } from 'next';
-import { Poppins } from 'next/font/google';
+import { Plus_Jakarta_Sans, Fredoka } from 'next/font/google';
 import './globals.css';
 import MainLayout from '@/src/components/layout/MainLayout';
 
-const poppins = Poppins({
-  variable: '--font-poppins',
+const jakarta = Plus_Jakarta_Sans({
+  variable: '--font-jakarta',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+});
+
+const fredoka = Fredoka({
+  variable: '--font-fredoka',
+  subsets: ['latin'],
+  weight: ['400', '600'],
+  display: 'swap',
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://guinee-makiti.com';
@@ -37,11 +45,7 @@ export const metadata: Metadata = {
     images:      ['/opengraph-image'],
   },
   icons: {
-    icon:  [
-      { url: '/icons/icon.svg', type: 'image/svg+xml' },
-      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-    ],
-    apple: [{ url: '/icons/icon-192.png', sizes: '192x192' }],
+    apple: [{ url: '/logo.jpeg' }],
   },
   manifest: '/manifest.webmanifest',
 };
@@ -50,7 +54,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fr" className={`${poppins.variable} h-full antialiased`}>
+    <html lang="fr" className={`${jakarta.variable} ${fredoka.variable} h-full antialiased`}>
       <head>
         <meta name="theme-color" content="#E53935" />
         <meta name="mobile-web-app-capable" content="yes" />

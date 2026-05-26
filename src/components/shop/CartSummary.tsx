@@ -3,12 +3,14 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { X, Loader2 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTimes, faSpinner } from '@/src/lib/icons';
 import type { CartItem } from '@/src/types';
 import { formatPrice } from '@/src/lib/formatters';
 import { generateWhatsAppLink } from '@/src/lib/whatsapp';
 import { createOrder } from '@/src/lib/services/orders.service';
 import { useCart } from '@/src/hooks/useCart';
+import { useOrderHistory } from '@/src/hooks/useOrderHistory';
 
 interface CartSummaryProps {
   items: CartItem[];
@@ -16,6 +18,7 @@ interface CartSummaryProps {
 
 export default function CartSummary({ items }: CartSummaryProps) {
   const { clearCart } = useCart();
+  const { addOrder }  = useOrderHistory();
   const router = useRouter();
 
   const [showModal, setShowModal] = useState(false);
@@ -48,6 +51,13 @@ export default function CartSummary({ items }: CartSummaryProps) {
       });
 
       window.open(generateWhatsAppLink(items, name.trim()), '_blank', 'noopener,noreferrer');
+      addOrder({
+        id:        order.id,
+        shortId:   order.id.slice(0, 8).toUpperCase(),
+        nom:       name.trim(),
+        total:     subtotal,
+        createdAt: order.created_at,
+      });
       clearCart();
       router.push(
         `/commande-confirmee?id=${order.id}&nom=${encodeURIComponent(name.trim())}&total=${subtotal}`,
@@ -113,7 +123,7 @@ export default function CartSummary({ items }: CartSummaryProps) {
                 onClick={() => setShowModal(false)}
                 className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors"
               >
-                <X size={18} />
+                <FontAwesomeIcon icon={faTimes} style={{ fontSize: 18 }} />
               </button>
             </div>
 
@@ -172,7 +182,7 @@ export default function CartSummary({ items }: CartSummaryProps) {
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 {loading ? (
-                  <Loader2 size={18} className="animate-spin" />
+                  <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 18 }} />
                 ) : (
                   <WhatsAppIcon />
                 )}

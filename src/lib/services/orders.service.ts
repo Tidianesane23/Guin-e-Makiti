@@ -19,14 +19,15 @@ export interface OrderStats {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapOrder(row: any): Order {
   return {
-    id:             row.id,
-    customer_name:  row.customer_name,
-    customer_phone: row.customer_phone,
-    items:          row.items ?? [],
-    total:          row.total_amount,
-    status:         row.status as OrderStatus,
-    notes:          row.notes,
-    created_at:     row.created_at,
+    id:                 row.id,
+    customer_name:      row.customer_name,
+    customer_phone:     row.customer_phone,
+    items:              row.items ?? [],
+    total:              row.total_amount,
+    status:             row.status as OrderStatus,
+    notes:              row.notes,
+    customer_confirmed: row.customer_confirmed ?? false,
+    created_at:         row.created_at,
   };
 }
 
@@ -88,6 +89,37 @@ export async function updateOrderStatus(
 
   if (error) throw error;
   return mapOrder(data);
+}
+
+export async function getOrdersByIds(ids: string[], client?: SupabaseClient): Promise<Order[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await db(client)
+    .from('orders')
+    .select('*')
+    .in('id', ids)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapOrder);
+}
+
+export async function getOrdersByPhone(phone: string, client?: SupabaseClient): Promise<Order[]> {
+  const clean = phone.replace(/\D/g, '');
+  if (!clean) return [];
+  const { data, error } = await db(client)
+    .from('orders')
+    .select('*')
+    .eq('customer_phone', clean)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapOrder);
+}
+
+export async function confirmCustomerReceipt(id: string, client?: SupabaseClient): Promise<void> {
+  const { error } = await db(client)
+    .from('orders')
+    .update({ customer_confirmed: true })
+    .eq('id', id);
+  if (error) throw error;
 }
 
 export async function getOrderStats(client?: SupabaseClient): Promise<OrderStats> {

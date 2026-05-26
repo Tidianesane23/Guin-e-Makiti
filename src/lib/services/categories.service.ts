@@ -57,3 +57,19 @@ export async function deleteCategory(id: string, client?: SupabaseClient): Promi
   const { error } = await db(client).from('categories').delete().eq('id', id);
   if (error) throw error;
 }
+
+export async function getCategoriesWithCounts(
+  client?: SupabaseClient,
+): Promise<(Category & { productCount: number })[]> {
+  const [categories, { data: productRows }] = await Promise.all([
+    getCategories(client),
+    db(client).from('products').select('category_id').eq('is_active', true),
+  ]);
+
+  const countMap: Record<string, number> = {};
+  for (const row of productRows ?? []) {
+    countMap[row.category_id] = (countMap[row.category_id] ?? 0) + 1;
+  }
+
+  return categories.map((cat) => ({ ...cat, productCount: countMap[cat.id] ?? 0 }));
+}

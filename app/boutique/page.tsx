@@ -2,7 +2,8 @@
 
 import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { SlidersHorizontal } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSlidersH } from '@/src/lib/icons';
 import { getProducts } from '@/src/lib/services/products.service';
 import { getCategories } from '@/src/lib/services/categories.service';
 import type { Product, Category } from '@/src/types';
@@ -22,13 +23,15 @@ type PriceRange = 'all'   | 'under_500k' | '500k_1m' | 'over_1m';
 function BoutiqueContent() {
   const searchParams = useSearchParams();
 
-  const [searchQuery,      setSearchQuery]      = useState('');
+  const [searchQuery,      setSearchQuery]      = useState(
+    () => searchParams.get('search') ?? '',
+  );
   const [selectedCategory, setSelectedCategory] = useState(
     () => searchParams.get('categorie') ?? 'all',
   );
   const [sortBy,        setSortBy]        = useState<SortBy>('newest');
   const [priceRange,    setPriceRange]    = useState<PriceRange>('all');
-  const [inStockOnly,   setInStockOnly]   = useState(false);
+  const [inStockOnly,   setInStockOnly]   = useState(true);
   const [currentPage,   setCurrentPage]   = useState(1);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
@@ -102,7 +105,7 @@ function BoutiqueContent() {
               onClick={() => setIsFiltersOpen(true)}
               className="relative flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-noir hover:bg-gray-50 transition-colors md:hidden"
             >
-              <SlidersHorizontal size={16} />
+              <FontAwesomeIcon icon={faSlidersH} style={{ fontSize: 16 }} />
               Filtres
               {hasActiveFilters && (
                 <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-rouge" />

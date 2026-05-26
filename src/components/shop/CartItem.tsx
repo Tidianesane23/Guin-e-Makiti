@@ -1,9 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMinus, faPlus, faTrash } from '@/src/lib/icons';
 import type { CartItem } from '@/src/types';
 import { formatPrice } from '@/src/lib/formatters';
 import Badge from '@/src/components/ui/Badge';
@@ -34,7 +34,15 @@ export default function CartItemCard({ item, onUpdate, onRemove }: CartItemCardP
         href={`/produit/${slug}`}
         className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gray-100"
       >
-        <Image src={image_url} alt={name} fill className="object-cover" sizes="80px" />
+        {image_url ? (
+          <img
+            src={image_url}
+            alt={name}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #F7D9C4, #FCE7DC)' }} />
+        )}
       </Link>
 
       {/* Content */}
@@ -61,7 +69,7 @@ export default function CartItemCard({ item, onUpdate, onRemove }: CartItemCardP
             aria-label={`Supprimer ${name} du panier`}
             className="shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-rouge/5 hover:text-rouge"
           >
-            <Trash2 size={16} />
+            <FontAwesomeIcon icon={faTrash} style={{ fontSize: 16 }} />
           </button>
         </div>
 
@@ -74,7 +82,7 @@ export default function CartItemCard({ item, onUpdate, onRemove }: CartItemCardP
               aria-label="Diminuer la quantité"
               className="flex h-8 w-8 items-center justify-center text-noir transition-colors hover:bg-gray-50 disabled:opacity-40"
             >
-              <Minus size={14} />
+              <FontAwesomeIcon icon={faMinus} style={{ fontSize: 14 }} />
             </button>
             <span className="w-10 text-center text-sm font-semibold text-noir">{quantity}</span>
             <button
@@ -83,7 +91,7 @@ export default function CartItemCard({ item, onUpdate, onRemove }: CartItemCardP
               aria-label="Augmenter la quantité"
               className="flex h-8 w-8 items-center justify-center text-noir transition-colors hover:bg-gray-50 disabled:opacity-40"
             >
-              <Plus size={14} />
+              <FontAwesomeIcon icon={faPlus} style={{ fontSize: 14 }} />
             </button>
           </div>
 

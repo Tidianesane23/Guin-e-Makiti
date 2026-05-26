@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 
 const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '224XXXXXXXXX';
-const href = `https://wa.me/${number}`;
+const href   = `https://wa.me/${number}`;
 
 export default function WhatsAppButton() {
   return (
@@ -12,28 +12,20 @@ export default function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Commander via WhatsApp"
-      className="fixed bottom-6 right-6 z-50 flex items-center rounded-full bg-[#25D366] text-white shadow-lg shadow-green-400/50 hover:opacity-90 transition-opacity duration-200"
+      className="fixed bottom-6 right-6 z-50 flex items-center rounded-full text-white hover:opacity-90 transition-opacity duration-200"
+      style={{
+        background: '#25D366',
+        boxShadow:  '0 6px 20px rgba(37,211,102,0.3)',
+      }}
       initial={{ x: 80, opacity: 0 }}
-      animate={{
-        x: 0,
-        opacity: 1,
-        boxShadow: [
-          '0 0 0 0 rgba(37,211,102,0.6)',
-          '0 0 0 12px rgba(37,211,102,0)',
-          '0 0 0 0 rgba(37,211,102,0)',
-        ],
-      }}
-      transition={{
-        x:         { type: 'spring', stiffness: 260, damping: 20, delay: 0.5 },
-        opacity:   { duration: 0.4, delay: 0.5 },
-        boxShadow: { duration: 2, repeat: Infinity, repeatDelay: 2, ease: 'easeOut' as const, delay: 1 },
-      }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.5 }}
     >
       <span className="flex h-14 w-14 shrink-0 items-center justify-center">
         <WhatsAppIcon />
       </span>
       <span className="hidden sm:block pr-5 font-bold text-sm whitespace-nowrap">
-        Commander
+        Commander via WhatsApp
       </span>
     </motion.a>
   );

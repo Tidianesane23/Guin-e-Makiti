@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faExclamationTriangle } from '@/src/lib/icons';
 import Button from '@/src/components/ui/Button';
 
 interface ErrorPageProps {
@@ -17,7 +18,7 @@ export default function GlobalError({ error, reset }: ErrorPageProps) {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-4 text-center">
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
-        <AlertTriangle size={36} className="text-rouge" />
+        <FontAwesomeIcon icon={faExclamationTriangle} style={{ fontSize: 36 }} className="text-rouge" />
       </div>
 
       <div>

@@ -3,15 +3,15 @@ import { cn } from '@/src/lib/utils';
 type Variant = 'promo' | 'rupture' | 'nouveau' | 'featured';
 
 interface BadgeProps {
-  variant: Variant;
+  variant:   Variant;
   className?: string;
 }
 
 const variants: Record<Variant, string> = {
-  promo:    'bg-jaune text-noir',
-  rupture:  'bg-gray-400 text-white',
-  nouveau:  'bg-vert text-white',
-  featured: 'bg-rouge text-white',
+  promo:    'bg-or text-white',
+  rupture:  'bg-dark/10 text-brun',
+  nouveau:  'bg-bordeaux text-white',
+  featured: 'bg-or text-white',
 };
 
 const labels: Record<Variant, string> = {

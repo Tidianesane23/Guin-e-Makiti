@@ -1,6 +1,7 @@
 'use client';
 
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch, faChevronLeft, faChevronRight } from '@/src/lib/icons';
 import type { Product } from '@/src/types';
 import ProductCard from '@/src/components/ui/ProductCard';
 import SkeletonCard from '@/src/components/ui/SkeletonCard';
@@ -37,7 +38,7 @@ export default function ProductGrid({
   if (products.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-24 text-center">
-        <Search size={52} className="text-gray-200" />
+        <FontAwesomeIcon icon={faSearch} style={{ fontSize: 52 }} className="text-gray-200" />
         <div>
           <p className="text-lg font-semibold text-noir">Aucun produit trouvé</p>
           <p className="mt-1 text-sm text-gray-500">Essayez d&apos;autres filtres</p>
@@ -100,7 +101,7 @@ function Pagination({
         aria-label="Page précédente"
         className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-noir hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        <ChevronLeft size={16} />
+        <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 16 }} />
       </button>
 
       {/* Page numbers */}
@@ -127,7 +128,7 @@ function Pagination({
         aria-label="Page suivante"
         className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-noir hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
       >
-        <ChevronRight size={16} />
+        <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: 16 }} />
       </button>
     </nav>
   );

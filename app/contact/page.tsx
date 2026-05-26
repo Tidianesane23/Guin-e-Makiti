@@ -2,28 +2,30 @@
 
 import { useState, FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { Phone, MapPin, Clock, ArrowRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { faPhone, faMapMarkerAlt, faClock, faArrowRight } from '@/src/lib/icons';
 import Button from '@/src/components/ui/Button';
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '224XXXXXXXXX';
 
-const INFO_CARDS = [
+const INFO_CARDS: { icon: IconDefinition; title: string; lines: string[]; color: string; bg: string }[] = [
   {
-    icon: Phone,
+    icon: faPhone,
     title: 'Téléphone',
     lines: ['+224 6XX XX XX XX', 'Lun – Sam, 8h – 20h'],
     color: 'text-rouge',
     bg: 'bg-rouge/10',
   },
   {
-    icon: MapPin,
+    icon: faMapMarkerAlt,
     title: 'Adresse',
     lines: ['Kaloum, Conakry', 'République de Guinée'],
     color: 'text-blue-500',
     bg: 'bg-blue-50',
   },
   {
-    icon: Clock,
+    icon: faClock,
     title: 'Horaires',
     lines: ['Lun – Sam : 8h – 20h', 'Dimanche : 10h – 18h'],
     color: 'text-orange-500',
@@ -118,7 +120,7 @@ export default function ContactPage() {
                 <p className="text-lg font-bold">Commander via WhatsApp</p>
                 <p className="mt-0.5 text-sm text-white/80">Réponse garantie en moins de 30 minutes</p>
               </div>
-              <ArrowRight size={20} className="shrink-0 opacity-70 transition-transform group-hover:translate-x-1" />
+              <FontAwesomeIcon icon={faArrowRight} style={{ fontSize: 20 }} className="shrink-0 opacity-70 transition-transform group-hover:translate-x-1" />
             </motion.a>
 
             {/* Info cards */}
@@ -128,14 +130,14 @@ export default function ContactPage() {
               animate="visible"
               className="grid gap-4 sm:grid-cols-3"
             >
-              {INFO_CARDS.map(({ icon: Icon, title, lines, color, bg }) => (
+              {INFO_CARDS.map(({ icon, title, lines, color, bg }) => (
                 <motion.div
                   key={title}
                   variants={fadeUp}
                   className="rounded-2xl bg-white p-5 shadow-sm"
                 >
                   <div className={`mb-3 inline-flex rounded-xl p-2.5 ${bg}`}>
-                    <Icon size={20} className={color} />
+                    <FontAwesomeIcon icon={icon} style={{ fontSize: 20 }} className={color} />
                   </div>
                   <p className="font-bold text-noir">{title}</p>
                   {lines.map((l) => (

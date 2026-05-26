@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Plus, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faEdit, faTrash, faChevronLeft, faChevronRight } from '@/src/lib/icons';
 import { getProductsAdmin } from '@/src/lib/services/products.service';
 import { getCategories } from '@/src/lib/services/categories.service';
 import { deleteProduct, toggleProductActive } from '@/src/lib/services/products.service';
@@ -112,7 +113,7 @@ export default function ProduitsAdminPage() {
           </div>
         </div>
         <Link href="/admin/produits/nouveau">
-          <Button variant="primary" iconLeft={<Plus size={16} />}>
+          <Button variant="primary" iconLeft={<FontAwesomeIcon icon={faPlus} style={{ fontSize: 16 }} />}>
             Ajouter un produit
           </Button>
         </Link>
@@ -183,14 +184,14 @@ export default function ProduitsAdminPage() {
                             className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-noir transition-colors"
                             aria-label="Modifier"
                           >
-                            <Edit2 size={15} />
+                            <FontAwesomeIcon icon={faEdit} style={{ fontSize: 15 }} />
                           </Link>
                           <button
                             onClick={() => setDeleteId(p.id)}
                             className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-rouge transition-colors"
                             aria-label="Supprimer"
                           >
-                            <Trash2 size={15} />
+                            <FontAwesomeIcon icon={faTrash} style={{ fontSize: 15 }} />
                           </button>
                         </div>
                       </td>
@@ -214,7 +215,7 @@ export default function ProduitsAdminPage() {
                 disabled={page === 1}
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-noir disabled:opacity-40 hover:bg-gray-50 transition-colors"
               >
-                <ChevronLeft size={14} />
+                <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: 14 }} />
               </button>
               <span className="px-2 text-sm font-medium text-noir">{page} / {totalPages}</span>
               <button
@@ -222,7 +223,7 @@ export default function ProduitsAdminPage() {
                 disabled={page === totalPages}
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-noir disabled:opacity-40 hover:bg-gray-50 transition-colors"
               >
-                <ChevronRight size={14} />
+                <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: 14 }} />
               </button>
             </div>
           </div>

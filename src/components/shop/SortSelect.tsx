@@ -1,6 +1,7 @@
 'use client';
 
-import { ChevronDown } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faChevronDown } from '@/src/lib/icons';
 
 const OPTIONS = [
   { value: 'newest',     label: 'Plus récents'    },
@@ -28,8 +29,9 @@ export default function SortSelect({ value, onChange }: SortSelectProps) {
           </option>
         ))}
       </select>
-      <ChevronDown
-        size={15}
+      <FontAwesomeIcon
+        icon={faChevronDown}
+        style={{ fontSize: 15 }}
         className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
       />
     </div>

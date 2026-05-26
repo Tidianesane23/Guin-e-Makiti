@@ -1,10 +1,13 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowRight } from '@/src/lib/icons';
 import ProductCard from '@/src/components/ui/ProductCard';
 import type { Product } from '@/src/types';
+import { getFeaturedProducts } from '@/src/lib/services/products.service';
 
 interface PopularProductsProps {
   products: Product[];
@@ -20,7 +23,13 @@ const item = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
 };
 
-export default function PopularProducts({ products }: PopularProductsProps) {
+export default function PopularProducts({ products: initialProducts }: PopularProductsProps) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+
+  useEffect(() => {
+    getFeaturedProducts(8).then(setProducts).catch(() => {});
+  }, []);
+
   if (!products.length) return null;
 
   return (
@@ -50,7 +59,7 @@ export default function PopularProducts({ products }: PopularProductsProps) {
               href="/boutique"
               className="flex items-center gap-1 text-sm font-semibold text-rouge hover:opacity-70 transition-opacity"
             >
-              Voir tout <ArrowRight size={16} />
+              Voir tout <FontAwesomeIcon icon={faArrowRight} style={{ fontSize: 16 }} />
             </Link>
           </motion.div>
         </div>
@@ -60,7 +69,7 @@ export default function PopularProducts({ products }: PopularProductsProps) {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.05 }}
-          className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4"
+          className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-4"
         >
           {products.map((product) => (
             <motion.div key={product.id} variants={item}>
@@ -80,7 +89,7 @@ export default function PopularProducts({ products }: PopularProductsProps) {
             href="/boutique"
             className="inline-flex items-center gap-2 rounded-full border-2 border-rouge px-10 py-3.5 font-bold text-rouge hover:bg-rouge hover:text-white transition-all duration-200"
           >
-            Voir toute la boutique <ArrowRight size={18} />
+            Voir toute la boutique <FontAwesomeIcon icon={faArrowRight} style={{ fontSize: 18 }} />
           </Link>
         </motion.div>
       </div>
