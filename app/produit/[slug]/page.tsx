@@ -5,8 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronRight } from '@/src/lib/icons';
 import { createSupabaseServerClient } from '@/src/lib/supabase-server';
 import { getProductBySlug } from '@/src/lib/services/products.service';
-import ProductGallery from '@/src/components/shop/ProductGallery';
-import ProductInfo from '@/src/components/shop/ProductInfo';
+import ProductPageClient from '@/src/components/shop/ProductPageClient';
 import RelatedProducts from '@/src/components/shop/RelatedProducts';
 
 interface Props {
@@ -62,10 +61,7 @@ export default async function ProduitPage({ params }: Props) {
         </nav>
 
         {/* Main layout */}
-        <div className="grid gap-8 lg:grid-cols-[55fr_45fr]">
-          <ProductGallery images={images} name={product.name} />
-          <ProductInfo product={product} />
-        </div>
+        <ProductPageClient product={product} images={images} />
 
         {/* Related products */}
         <RelatedProducts currentProductId={product.id} categoryId={product.category_id} />

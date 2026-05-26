@@ -23,6 +23,7 @@ export interface Product {
   promo_price?: number;
   image_url: string;
   images?: string[];
+  variant_names?: string[];
   category_id: string;
   category?: Category;
   stock: number;
@@ -35,6 +36,7 @@ export interface Product {
 export interface CartItem {
   product: Product;
   quantity: number;
+  variant?: string;
 }
 
 export interface Order {

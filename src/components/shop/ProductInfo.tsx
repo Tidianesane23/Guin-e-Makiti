@@ -13,9 +13,11 @@ import StockIndicator from '@/src/components/ui/StockIndicator';
 
 interface ProductInfoProps {
   product: Product;
+  selectedVariant?: string;
+  onVariantChange?: (v: string) => void;
 }
 
-export default function ProductInfo({ product }: ProductInfoProps) {
+export default function ProductInfo({ product, selectedVariant = '', onVariantChange }: ProductInfoProps) {
   const { name, price, promo_price, characteristics, description } = product;
   const [quantity,    setQuantity]    = useState(1);
   const [added,       setAdded]       = useState(false);
@@ -23,13 +25,16 @@ export default function ProductInfo({ product }: ProductInfoProps) {
   const [showModal,   setShowModal]   = useState(false);
   const { addItem } = useCart();
 
+  const variants    = (product.variant_names ?? []).filter(Boolean);
+  const hasVariants = variants.length > 1;
+
   const isOutOfStock   = localStock === 0;
   const hasPromo       = promo_price !== undefined && promo_price < price;
   const effectivePrice = promo_price ?? price;
   const discount       = hasPromo ? Math.round(((price - promo_price!) / price) * 100) : 0;
 
   const handleAddToCart = () => {
-    addItem(product, quantity);
+    addItem(product, quantity, selectedVariant || undefined);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -66,6 +71,41 @@ export default function ProductInfo({ product }: ProductInfoProps) {
           </>
         )}
       </div>
+
+      {/* Variant selector */}
+      {hasVariants && (
+        <div>
+          <p className="mb-2 text-sm font-semibold text-noir">
+            Modèle <span className="text-rouge">*</span>
+            {selectedVariant && (
+              <span className="ml-2 font-normal text-gray-500">— {selectedVariant}</span>
+            )}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {variants.map((v, i) => {
+              const img = product.images?.[i];
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => onVariantChange?.(v)}
+                  className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2 text-sm font-medium transition-all ${
+                    selectedVariant === v
+                      ? 'border-rouge bg-rouge/5 text-rouge shadow-sm'
+                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                  }`}
+                >
+                  {img && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={img} alt={v} className="h-7 w-7 rounded-lg object-cover" />
+                  )}
+                  {v}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Description */}
       <p className="text-sm leading-relaxed text-gray-600">{description}</p>
@@ -166,6 +206,7 @@ export default function ProductInfo({ product }: ProductInfoProps) {
         <QuickOrderModal
           product={product}
           quantity={quantity}
+          initialVariant={selectedVariant || undefined}
           onClose={handleModalClose}
         />
       )}

@@ -25,17 +25,19 @@ export function useCart() {
     }
   }, [items, hydrated]);
 
-  const addItem = useCallback((product: Product, quantity = 1) => {
+  const addItem = useCallback((product: Product, quantity = 1, variant?: string) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
+      const existing = prev.find(
+        (i) => i.product.id === product.id && (i.variant ?? '') === (variant ?? ''),
+      );
       if (existing) {
         return prev.map((i) =>
-          i.product.id === product.id
+          i.product.id === product.id && (i.variant ?? '') === (variant ?? '')
             ? { ...i, quantity: i.quantity + quantity }
-            : i
+            : i,
         );
       }
-      return [...prev, { product, quantity }];
+      return [...prev, { product, quantity, variant }];
     });
   }, []);
 

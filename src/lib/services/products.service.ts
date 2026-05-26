@@ -21,6 +21,7 @@ export interface ProductFormData {
   promo_price?: number;
   category_id: string;
   images: string[];
+  variant_names: string[];
   stock: number;
   is_active: boolean;
   is_featured: boolean;
@@ -40,6 +41,7 @@ function mapProduct(row: any): Product {
     promo_price:     row.promo_price ?? undefined,
     image_url:       (row.images as string[])?.[0] ?? '',
     images:          row.images ?? [],
+    variant_names:   row.variant_names ?? [],
     category_id:     row.category_id,
     category:        row.category as Category | undefined,
     stock:           row.stock,

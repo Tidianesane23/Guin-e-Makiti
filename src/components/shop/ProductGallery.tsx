@@ -10,6 +10,8 @@ import { cn } from '@/src/lib/utils';
 interface ProductGalleryProps {
   images: string[];
   name: string;
+  forcedIndex?: number;
+  onIndexChange?: (i: number) => void;
 }
 
 const AUTOPLAY_MS = 3500;
@@ -20,16 +22,24 @@ const variants = {
   exit:   (dir: number) => ({ x: dir < 0 ? '60%' : '-60%', opacity: 0 }),
 };
 
-export default function ProductGallery({ images, name }: ProductGalleryProps) {
+export default function ProductGallery({ images, name, forcedIndex, onIndexChange }: ProductGalleryProps) {
   const [[index, direction], setSlide] = useState([0, 0]);
   const [copied, setCopied] = useState(false);
   const indexRef = useRef(0);
 
   useEffect(() => { indexRef.current = index; }, [index]);
 
+  // Sync with external variant selection
+  useEffect(() => {
+    if (forcedIndex !== undefined && forcedIndex !== indexRef.current) {
+      setSlide([forcedIndex, forcedIndex > indexRef.current ? 1 : -1]);
+    }
+  }, [forcedIndex]);
+
   const goTo = useCallback((next: number, dir?: number) => {
     setSlide(([prev]) => [next, dir ?? (next > prev ? 1 : -1)]);
-  }, []);
+    onIndexChange?.(next);
+  }, [onIndexChange]);
 
   // Auto-play — always runs, no pause on hover
   useEffect(() => {

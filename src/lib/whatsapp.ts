@@ -21,10 +21,18 @@ export function generateWhatsAppLink(items: CartItem[], customerName?: string): 
     : ['Bonjour Guinée Makiti 👋', '', 'Je souhaite commander :'];
 
   const lines: string[] = [];
-  for (const { product, quantity } of items) {
+  for (const { product, quantity, variant } of items) {
     const unitPrice = product.promo_price ?? product.price;
-    const imageUrl  = resolveImageUrl(product.images?.[0] ?? product.image_url ?? undefined);
-    lines.push(`🛍️ *${product.name}* x${quantity}`);
+    const variantIdx = variant
+      ? (product.variant_names ?? []).indexOf(variant)
+      : -1;
+    const imageUrl = resolveImageUrl(
+      (variantIdx >= 0 ? product.images?.[variantIdx] : undefined)
+      ?? product.images?.[0]
+      ?? product.image_url
+      ?? undefined,
+    );
+    lines.push(`🛍️ *${product.name}*${variant ? ` — ${variant}` : ''} x${quantity}`);
     lines.push(`💰 Prix : ${formatPrice(unitPrice * quantity)} GNF`);
     if (imageUrl) {
       lines.push('');

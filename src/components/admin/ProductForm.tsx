@@ -44,7 +44,8 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
   const [chars, setChars] = useState<{ key: string; value: string }[]>(
     Object.entries(product?.characteristics ?? {}).map(([key, value]) => ({ key, value })),
   );
-  const [images,    setImages]    = useState<string[]>(product?.images ?? []);
+  const [images,       setImages]       = useState<string[]>(product?.images ?? []);
+  const [variantNames, setVariantNames] = useState<string[]>(product?.variant_names ?? []);
   const [errors,    setErrors]    = useState<Record<string, string>>({});
   const [saving,    setSaving]    = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -59,7 +60,12 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
   const updateChar = (i: number, field: 'key' | 'value', v: string) =>
     setChars((c) => c.map((item, idx) => (idx === i ? { ...item, [field]: v } : item)));
 
-  const removeImage = (i: number) => setImages((imgs) => imgs.filter((_, idx) => idx !== i));
+  const removeImage = (i: number) => {
+    setImages((imgs) => imgs.filter((_, idx) => idx !== i));
+    setVariantNames((vn) => vn.filter((_, idx) => idx !== i));
+  };
+  const updateVariantName = (i: number, v: string) =>
+    setVariantNames((vn) => vn.map((n, idx) => (idx === i ? v : n)));
 
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,6 +75,7 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
       const folder = product?.id ?? uploadRef.current;
       const url = await uploadProductImage(file, folder);
       setImages((imgs) => [...imgs, url]);
+      setVariantNames((vn) => [...vn, '']);
     } catch {
       // upload failed silently; user can retry
     } finally {
@@ -109,6 +116,7 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
         chars.filter((c) => c.key.trim()).map((c) => [c.key.trim(), c.value]),
       ),
       images,
+      variant_names: variantNames,
     };
 
     try {
@@ -263,20 +271,32 @@ export default function ProductForm({ product, categories = [] }: ProductFormPro
           <section className="rounded-2xl bg-white p-5 shadow-sm">
             <h2 className="mb-4 font-semibold text-noir">Images</h2>
             {images.length > 0 && (
-              <div className="mb-3 flex flex-wrap gap-2">
+              <div className="mb-3 flex flex-col gap-2">
                 {images.map((src, i) => (
-                  <div key={i} className="relative h-20 w-20 overflow-hidden rounded-xl border border-gray-200">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(i)}
-                      className="absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white hover:bg-black transition-colors"
-                    >
-                      <FontAwesomeIcon icon={faTimes} style={{ fontSize: 12 }} />
-                    </button>
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-gray-200">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt="" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(i)}
+                        className="absolute right-0.5 top-0.5 rounded-full bg-black/60 p-0.5 text-white hover:bg-black transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faTimes} style={{ fontSize: 11 }} />
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={variantNames[i] ?? ''}
+                      onChange={(e) => updateVariantName(i, e.target.value)}
+                      placeholder={`Nom modèle ${i + 1} (ex: Rouge, Taille L…)`}
+                      className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-rouge focus:ring-1 focus:ring-rouge"
+                    />
                   </div>
                 ))}
+                {images.length > 1 && (
+                  <p className="text-xs text-gray-400">Nommez chaque modèle pour que le client puisse choisir au moment de la commande.</p>
+                )}
               </div>
             )}
             <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 py-6 text-sm text-gray-500 transition-colors hover:border-rouge hover:text-rouge">

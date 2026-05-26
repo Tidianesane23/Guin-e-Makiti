@@ -11,19 +11,24 @@ import { formatPrice } from '@/src/lib/formatters';
 import { useOrderHistory } from '@/src/hooks/useOrderHistory';
 
 interface QuickOrderModalProps {
-  product:  Product;
-  quantity: number;
-  onClose:  () => void;
+  product:        Product;
+  quantity:       number;
+  onClose:        (newStock?: number) => void;
+  initialVariant?: string;
 }
 
-export default function QuickOrderModal({ product, quantity, onClose }: QuickOrderModalProps) {
+export default function QuickOrderModal({ product, quantity, onClose, initialVariant }: QuickOrderModalProps) {
   const router = useRouter();
   const { addOrder } = useOrderHistory();
 
-  const [name,    setName]    = useState('');
-  const [phone,   setPhone]   = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error,   setError]   = useState('');
+  const variants      = (product.variant_names ?? []).filter(Boolean);
+  const hasVariants   = variants.length > 1;
+
+  const [name,     setName]     = useState('');
+  const [phone,    setPhone]    = useState('');
+  const [variant,  setVariant]  = useState(initialVariant ?? '');
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
 
   const effectivePrice = product.promo_price ?? product.price;
   const total          = effectivePrice * quantity;
@@ -32,12 +37,14 @@ export default function QuickOrderModal({ product, quantity, onClose }: QuickOrd
     e.preventDefault();
     if (!name.trim())  { setError('Veuillez entrer votre nom.'); return; }
     if (!phone.trim()) { setError('Veuillez entrer votre numéro WhatsApp.'); return; }
+    if (hasVariants && !variant) { setError('Veuillez choisir un modèle.'); return; }
 
     setError('');
     setLoading(true);
 
     // 1. Ouvrir WhatsApp immédiatement (avant tout async pour éviter le blocage popup)
-    const link = generateWhatsAppLink([{ product, quantity }], name.trim());
+    const selectedVariant = hasVariants ? variant : undefined;
+    const link = generateWhatsAppLink([{ product, quantity, variant: selectedVariant }], name.trim());
     window.open(link, '_blank', 'noopener,noreferrer');
 
     // 2. Créer la commande dans Supabase
@@ -45,8 +52,9 @@ export default function QuickOrderModal({ product, quantity, onClose }: QuickOrd
       const order = await createOrder({
         customer_name:  name.trim(),
         customer_phone: phone.trim().replace(/\D/g, ''),
-        items:          [{ product, quantity }],
+        items:          [{ product, quantity, variant: selectedVariant }],
         total_amount:   total,
+        notes:          selectedVariant ? `Modèle : ${selectedVariant}` : undefined,
       });
 
       // 3. Sauvegarder dans localStorage pour le suivi
@@ -102,6 +110,38 @@ export default function QuickOrderModal({ product, quantity, onClose }: QuickOrd
             </p>
           </div>
         </div>
+
+        {/* Sélecteur de variante */}
+        {hasVariants && (
+          <div className="mb-1">
+            <p className="mb-2 text-sm font-medium text-noir">
+              Choisissez un modèle <span className="text-rouge">*</span>
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {variants.map((v, i) => {
+                const img = product.images?.[i];
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setVariant(v)}
+                    className={`flex items-center gap-2 rounded-xl border-2 px-3 py-1.5 text-sm font-medium transition-all ${
+                      variant === v
+                        ? 'border-rouge bg-rouge/5 text-rouge'
+                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    {img && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={img} alt={v} className="h-6 w-6 rounded-md object-cover" />
+                    )}
+                    {v}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-1.5">
