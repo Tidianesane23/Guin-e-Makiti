@@ -1,6 +1,7 @@
 import Header from './Header';
 import Footer from './Footer';
 import WhatsAppButton from './WhatsAppButton';
+import TabaskiBanner from './TabaskiBanner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTruck, faCreditCard, faShieldAlt } from '@/src/lib/icons';
 
@@ -15,9 +16,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     <>
       <Header />
 
-      {/* Barre info statique — pt compense le header fixed h-14 md:h-16 */}
+      {/* Zone sous le header fixe (pt compense h-14 md:h-16) */}
+      <div className="pt-14 md:pt-16">
+        <TabaskiBanner />
+      </div>
+
+      {/* Barre info statique */}
       <div
-        className="flex items-center justify-center flex-wrap w-full overflow-hidden pt-14 md:pt-16"
+        className="flex items-center justify-center flex-wrap w-full overflow-hidden"
         style={{
           background:   'rgba(200,134,10,0.06)',
           borderBottom: '1px solid rgba(200,134,10,0.1)',
