@@ -58,21 +58,36 @@ export async function getOrders(
 }
 
 export async function createOrder(formData: OrderFormData, client?: SupabaseClient): Promise<Order> {
-  const { data, error } = await db(client)
+  // UUID généré côté client pour éviter le .select() après insert
+  // (la politique RLS n'autorise pas la lecture publique des commandes)
+  const id  = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  const { error } = await db(client)
     .from('orders')
     .insert({
+      id,
       customer_name:  formData.customer_name,
       customer_phone: formData.customer_phone,
       items:          formData.items,
       total_amount:   formData.total_amount,
       notes:          formData.notes,
       status:         'en_attente',
-    })
-    .select()
-    .single();
+    });
 
   if (error) throw error;
-  return mapOrder(data);
+
+  return {
+    id,
+    customer_name:      formData.customer_name,
+    customer_phone:     formData.customer_phone,
+    items:              formData.items,
+    total:              formData.total_amount,
+    status:             'en_attente',
+    notes:              formData.notes,
+    customer_confirmed: false,
+    created_at:         now,
+  };
 }
 
 export async function updateOrderStatus(
