@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, FormEvent, Suspense } from 'react';
+import { useState, useEffect, useCallback, FormEvent, Suspense } from 'react';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faShoppingBag, faSpinner, faPhone, faStar, faCheckCircle } from '@/src/lib/icons';
+import { faSearch, faShoppingBag, faSpinner, faPhone, faStar, faCheckCircle, faRocket } from '@/src/lib/icons';
 import { useOrderHistory } from '@/src/hooks/useOrderHistory';
 import { getOrdersByIds, getOrdersByPhone, confirmCustomerReceipt } from '@/src/lib/services/orders.service';
 import { submitReview } from '@/src/lib/services/reviews.service';
@@ -323,37 +323,72 @@ function OrderCard({ order, onConfirmed }: { order: Order; onConfirmed?: (id: st
   );
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function localOrdersFromHistory(history: import('@/src/hooks/useOrderHistory').OrderHistoryItem[]): Order[] {
+  return history.map((h) => ({
+    id:                 h.id,
+    customer_name:      h.nom,
+    customer_phone:     '',
+    items:              [],
+    total:              h.total,
+    status:             'en_attente' as OrderStatus,
+    customer_confirmed: false,
+    created_at:         h.createdAt,
+  }));
+}
+
+const POLL_INTERVAL = 30_000; // 30 s
+
 // ─── Main content ─────────────────────────────────────────────────────────────
 
 function SuiviContent() {
   const { history, hydrated } = useOrderHistory();
 
-  const [orders,   setOrders]   = useState<Order[]>([]);
-  const [phone,    setPhone]    = useState('');
-  const [loading,  setLoading]  = useState(false);
-  const [searched, setSearched] = useState(false);
-  const [error,    setError]    = useState('');
+  const [orders,    setOrders]    = useState<Order[]>([]);
+  const [phone,     setPhone]     = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [refreshing,setRefreshing]= useState(false);
+  const [searched,  setSearched]  = useState(false);
+  const [error,     setError]     = useState('');
+  const [lastSync,  setLastSync]  = useState<Date | null>(null);
 
+  // Fetch real statuses from Supabase and merge with local fallback
+  const fetchFromSupabase = useCallback(async (ids: string[], silent = false) => {
+    if (!silent) setRefreshing(true);
+    try {
+      const real = await getOrdersByIds(ids);
+      if (real.length > 0) {
+        setOrders(real);
+        setLastSync(new Date());
+      }
+    } catch {
+      // keep local data
+    } finally {
+      if (!silent) setRefreshing(false);
+    }
+  }, []);
+
+  // Initial load: show localStorage instantly, then try Supabase
   useEffect(() => {
     if (!hydrated || history.length === 0) return;
+    setOrders(localOrdersFromHistory(history));
+    fetchFromSupabase(history.map((h) => h.id), true);
+  }, [hydrated, history, fetchFromSupabase]);
 
-    // Afficher immédiatement depuis localStorage (statut par défaut: en_attente)
-    setOrders(history.map((h) => ({
-      id:                 h.id,
-      customer_name:      h.nom,
-      customer_phone:     '',
-      items:              [],
-      total:              h.total,
-      status:             'en_attente' as OrderStatus,
-      customer_confirmed: false,
-      created_at:         h.createdAt,
-    })));
+  // Auto-poll every 30s when local orders exist
+  useEffect(() => {
+    if (!hydrated || history.length === 0 || searched) return;
+    const id = setInterval(() => {
+      fetchFromSupabase(history.map((h) => h.id), true);
+    }, POLL_INTERVAL);
+    return () => clearInterval(id);
+  }, [hydrated, history, searched, fetchFromSupabase]);
 
-    // Enrichir depuis Supabase si la politique RLS le permet (statut réel)
-    getOrdersByIds(history.map((h) => h.id))
-      .then((real) => { if (real.length > 0) setOrders(real); })
-      .catch(() => {});
-  }, [hydrated, history]);
+  const handleRefresh = () => {
+    if (searched) return;
+    fetchFromSupabase(history.map((h) => h.id));
+  };
 
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
@@ -372,7 +407,6 @@ function SuiviContent() {
     setLoading(false);
   };
 
-  // When customer confirms a delivery, refresh that single order to show updated state
   const handleConfirmed = (id: string) => {
     setOrders((prev) =>
       prev.map((o) => o.id === id ? { ...o, customer_confirmed: true } : o),
@@ -385,10 +419,33 @@ function SuiviContent() {
     <div className="min-h-screen bg-gray-50">
       <div className="border-b border-gray-100 bg-white">
         <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-          <h1 className="text-2xl font-bold text-noir md:text-3xl">Suivre ma commande</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Consultez le statut de vos commandes en temps réel
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-noir md:text-3xl">Suivre ma commande</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Statut mis à jour en temps réel
+              </p>
+            </div>
+            {hasLocalOrders && !searched && (
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="shrink-0 flex items-center gap-2 rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-50"
+              >
+                <FontAwesomeIcon
+                  icon={faRocket}
+                  spin={refreshing}
+                  style={{ fontSize: 14, color: '#C8860A' }}
+                />
+                {refreshing ? 'Mise à jour…' : 'Rafraîchir'}
+              </button>
+            )}
+          </div>
+          {lastSync && (
+            <p className="mt-2 text-[11px] text-gray-400">
+              Dernière mise à jour : {lastSync.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          )}
         </div>
       </div>
 
