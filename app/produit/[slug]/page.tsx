@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from '@/src/lib/supabase-server';
 import { getProductBySlug } from '@/src/lib/services/products.service';
 import ProductPageClient from '@/src/components/shop/ProductPageClient';
 import RelatedProducts from '@/src/components/shop/RelatedProducts';
+import ViewTracker from '@/src/components/shop/ViewTracker';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -74,6 +75,8 @@ export default async function ProduitPage({ params }: Props) {
           <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: 14 }} className="shrink-0" />
           <span className="line-clamp-1 font-medium text-noir">{product.name}</span>
         </nav>
+
+        <ViewTracker productId={product.id} slug={product.slug} />
 
         {/* Main layout */}
         <ProductPageClient product={product} images={images} />

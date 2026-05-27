@@ -2,6 +2,7 @@ import Header from './Header';
 import Footer from './Footer';
 import WhatsAppButton from './WhatsAppButton';
 import TabaskiBanner from './TabaskiBanner';
+import AdminFloatingBar from './AdminFloatingBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTruck, faCreditCard, faShieldAlt } from '@/src/lib/icons';
 
@@ -52,6 +53,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
       <main className="flex-1 w-full overflow-hidden">{children}</main>
       <WhatsAppButton />
+      <AdminFloatingBar />
       <Footer />
     </>
   );

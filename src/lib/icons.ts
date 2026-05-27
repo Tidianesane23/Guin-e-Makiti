@@ -52,6 +52,9 @@ export {
   faExclamationCircle,
   faLightbulb,
   faRocket,
+  faLock,
+  faGear,
+  faBell,
 } from '@fortawesome/free-solid-svg-icons';
 
 // ─── Brand icons ─────────────────────────────────────────────────────────────
