@@ -41,6 +41,9 @@ export default function CartSummary({ items }: CartSummaryProps) {
     setError('');
     setLoading(true);
 
+    // Ouvrir WhatsApp immédiatement (avant tout await) pour éviter le blocage popup desktop
+    window.open(generateWhatsAppLink(items, name.trim()), '_blank', 'noopener,noreferrer');
+
     try {
       const order = await createOrder({
         customer_name:  name.trim(),
@@ -49,8 +52,6 @@ export default function CartSummary({ items }: CartSummaryProps) {
         total_amount:   subtotal,
         notes:          notes.trim() || undefined,
       });
-
-      window.open(generateWhatsAppLink(items, name.trim()), '_blank', 'noopener,noreferrer');
       addOrder({
         id:        order.id,
         shortId:   order.id.slice(0, 8).toUpperCase(),
@@ -64,7 +65,6 @@ export default function CartSummary({ items }: CartSummaryProps) {
       );
     } catch {
       setError('Une erreur est survenue. Votre commande WhatsApp reste disponible.');
-      window.open(generateWhatsAppLink(items, name.trim()), '_blank', 'noopener,noreferrer');
     } finally {
       setLoading(false);
     }
