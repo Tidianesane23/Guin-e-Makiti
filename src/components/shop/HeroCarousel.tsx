@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
-  faChevronLeft, faChevronRight, faMobileAlt, faHeadphones, faTshirt, faHome,
+  faChevronLeft, faChevronRight, faMobileAlt, faHeadphones, faTshirt, faHome, faStar,
 } from '@/src/lib/icons';
 
 interface Slide {
@@ -19,6 +19,15 @@ interface Slide {
 }
 
 const SLIDES: Slide[] = [
+  {
+    bg:    'linear-gradient(135deg, #1C0A0A, #3A1A00, #6B3A00)',
+    image: '/Tabaski.jpeg',
+    icon:  faStar,
+    label: '🌙 Tabaski Mubarak',
+    title: 'Bonne fête\nde Tabaski !',
+    cta:   'Voir la boutique →',
+    href:  '/boutique',
+  },
   {
     bg:    'linear-gradient(135deg, #2C0A0A, #5C1A1A, #8B2E2E)',
     image: '/Banierre.jpeg',

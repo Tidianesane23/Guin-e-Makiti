@@ -336,7 +336,23 @@ function SuiviContent() {
 
   useEffect(() => {
     if (!hydrated || history.length === 0) return;
-    getOrdersByIds(history.map((h) => h.id)).then(setOrders).catch(() => {});
+
+    // Afficher immédiatement depuis localStorage (statut par défaut: en_attente)
+    setOrders(history.map((h) => ({
+      id:                 h.id,
+      customer_name:      h.nom,
+      customer_phone:     '',
+      items:              [],
+      total:              h.total,
+      status:             'en_attente' as OrderStatus,
+      customer_confirmed: false,
+      created_at:         h.createdAt,
+    })));
+
+    // Enrichir depuis Supabase si la politique RLS le permet (statut réel)
+    getOrdersByIds(history.map((h) => h.id))
+      .then((real) => { if (real.length > 0) setOrders(real); })
+      .catch(() => {});
   }, [hydrated, history]);
 
   const handleSearch = async (e: FormEvent) => {
