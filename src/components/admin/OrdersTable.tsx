@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCommentDots, faChevronDown, faShare } from '@/src/lib/icons';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://guinee-makiti.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://guinee-makiti.shop';
 import type { OrderStatus } from '@/src/types';
 import { formatPrice } from '@/src/lib/formatters';
 

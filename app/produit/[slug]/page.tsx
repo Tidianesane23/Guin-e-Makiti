@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product  = await getProductBySlug(slug, supabase);
   if (!product) return { title: 'Produit introuvable — Guinée Makiti' };
 
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://guinee-makiti.com';
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://guinee-makiti.shop';
 
   return {
     title: `${product.name} — Guinée Makiti`,

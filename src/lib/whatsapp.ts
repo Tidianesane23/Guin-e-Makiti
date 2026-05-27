@@ -2,7 +2,7 @@ import { CartItem } from '@/src/types';
 import { formatPrice } from './formatters';
 
 const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '224XXXXXXXXX';
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://guinee-makiti.com').replace(/\/$/, '');
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://guinee-makiti.shop').replace(/\/$/, '');
 
 function resolveImageUrl(url: string | undefined): string | null {
   if (!url) return null;
