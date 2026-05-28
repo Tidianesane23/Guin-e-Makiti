@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faSearch, faShoppingCart, faTimes, faShoppingBag } from '@/src/lib/icons';
+import { faBars, faSearch, faShoppingCart, faTimes, faShoppingBag, faUser } from '@/src/lib/icons';
 import { useCart } from '@/src/hooks/useCart';
+import { useAuth } from '@/src/hooks/useAuth';
 import LogoText from '@/src/components/ui/LogoText';
 
 const NAV = [
@@ -25,6 +26,7 @@ export default function Header() {
   const pathname = usePathname();
   const router   = useRouter();
   const { itemCount, hydrated } = useCart();
+  const { user } = useAuth();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -144,6 +146,25 @@ export default function Header() {
             >
               <FontAwesomeIcon icon={faSearch} style={{ fontSize: 18, width: 18, height: 18 }} />
             </button>
+
+            {/* Mon compte */}
+            <Link
+              href={user ? '/compte' : '/compte/connexion'}
+              aria-label="Mon compte"
+              className="relative p-2 rounded-xl transition-colors"
+              style={{ background: 'rgba(200,134,10,0.08)', color: '#C8860A' }}
+            >
+              {user ? (
+                <span
+                  className="flex items-center justify-center rounded-full text-white font-bold leading-none"
+                  style={{ width: 18, height: 18, fontSize: 9, background: '#C8860A' }}
+                >
+                  {user.email?.slice(0, 2).toUpperCase()}
+                </span>
+              ) : (
+                <FontAwesomeIcon icon={faUser} style={{ fontSize: 18, width: 18, height: 18 }} />
+              )}
+            </Link>
 
             {/* Panier */}
             <Link
@@ -314,7 +335,16 @@ export default function Header() {
                 })}
               </nav>
 
-              <div className="px-5 pb-8 pt-2">
+              <div className="px-5 pb-8 pt-2 flex flex-col gap-3">
+                <Link
+                  href={user ? '/compte' : '/compte/connexion'}
+                  onClick={close}
+                  className="flex w-full items-center justify-center gap-2 rounded-full py-3 font-semibold transition-colors"
+                  style={{ background: 'rgba(200,134,10,0.1)', color: '#C8860A', border: '1.5px solid rgba(200,134,10,0.25)' }}
+                >
+                  <FontAwesomeIcon icon={faUser} style={{ fontSize: 15, width: 15, height: 15 }} />
+                  {user ? 'Mon compte' : 'Connexion'}
+                </Link>
                 <Link
                   href="/boutique"
                   onClick={close}

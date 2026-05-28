@@ -14,12 +14,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isLoginPage = pathname === '/admin/login';
+  const adminEmail  = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const isAdmin     = adminEmail ? user?.email === adminEmail : true;
 
   useEffect(() => {
     if (loading) return;
     if (!user && !isLoginPage) router.replace('/admin/login');
-    if (user  &&  isLoginPage) router.replace('/admin/dashboard');
-  }, [user, loading, isLoginPage, router]);
+    if (user && !isAdmin && !isLoginPage) router.replace('/');
+    if (user && isAdmin && isLoginPage) router.replace('/admin/dashboard');
+  }, [user, loading, isLoginPage, isAdmin, router]);
 
   // Loading screen
   if (loading) {
@@ -33,8 +36,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Login page — no sidebar
   if (isLoginPage) return <>{children}</>;
 
-  // Protected pages — no user yet (redirect in flight)
-  if (!user) return null;
+  // Protected pages — no user yet or not admin (redirect in flight)
+  if (!user || !isAdmin) return null;
 
   return (
     <div className="flex min-h-screen bg-[#F8F9FA]">
