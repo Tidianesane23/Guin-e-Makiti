@@ -8,7 +8,6 @@ import {
   getOrders,
   createOrder,
   updateOrderStatus,
-  resolveDispute,
 } from '@/src/lib/services/orders.service';
 
 const DisputeChatAdmin = dynamic(() => import('@/src/components/shop/DisputeChat'), { ssr: false });
@@ -69,13 +68,11 @@ function orderToAdmin(order: Order): AdminOrder {
 
 // ─── Order detail modal ───────────────────────────────────────────────────────
 
-function OrderDetailModal({ order, onClose, onProofSaved }: { order: Order; onClose: () => void; onProofSaved?: (id: string, proof: string) => void }) {
+function OrderDetailModal({ order, onClose, onProofSaved }: { order: Order; onClose: () => void; onProofSaved?: (id: string, val: string) => void }) {
   const st = STATUS_STYLES[order.status];
   const date = new Date(order.created_at).toLocaleDateString('fr-FR', {
     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
-  const [proof,       setProof]       = useState(order.dispute_proof ?? '');
-  const [savingProof, setSavingProof] = useState(false);
 
   return (
     <div
