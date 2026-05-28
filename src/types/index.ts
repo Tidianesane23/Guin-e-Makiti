@@ -52,6 +52,7 @@ export interface Order {
   cancel_reason?: string;
   dispute_reason?: string;
   dispute_proof?: string;
+  dispute_status?: 'open' | 'admin_resolved' | 'client_confirmed';
   customer_confirmed?: boolean;
   created_at: string;
 }

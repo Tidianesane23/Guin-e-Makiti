@@ -213,6 +213,10 @@ function OrderDetailModal({ order, onClose, onProofSaved }: { order: Order; onCl
                 orderId={order.id}
                 sender="admin"
                 initialDisputeReason={order.dispute_reason}
+                disputeStatus={order.dispute_status ?? null}
+                onStatusChange={(s) => {
+                  onProofSaved?.(order.id, s);
+                }}
               />
             </div>
           )}
@@ -459,9 +463,16 @@ export default function CommandesAdminPage() {
         <OrderDetailModal
           order={detailOrder}
           onClose={() => setDetailOrder(null)}
-          onProofSaved={(id, p) => {
-            setOrders((os) => os.map((o) => o.id === id ? { ...o, dispute_proof: p } : o));
-            setDetailOrder((prev) => prev ? { ...prev, dispute_proof: p } : null);
+          onProofSaved={(id, val) => {
+            const isStatus = val === 'open' || val === 'admin_resolved' || val === 'client_confirmed';
+            setOrders((os) => os.map((o) => o.id === id
+              ? isStatus ? { ...o, dispute_status: val as Order['dispute_status'] } : { ...o, dispute_proof: val }
+              : o,
+            ));
+            setDetailOrder((prev) => {
+              if (!prev) return null;
+              return isStatus ? { ...prev, dispute_status: val as Order['dispute_status'] } : { ...prev, dispute_proof: val };
+            });
           }}
         />
       )}

@@ -30,8 +30,9 @@ function mapOrder(row: any): Order {
     status:             row.status as OrderStatus,
     notes:              row.notes,
     cancel_reason:      row.cancel_reason  ?? undefined,
-    dispute_reason:     row.dispute_reason ?? undefined,
-    dispute_proof:      row.dispute_proof  ?? undefined,
+    dispute_reason:     row.dispute_reason  ?? undefined,
+    dispute_proof:      row.dispute_proof   ?? undefined,
+    dispute_status:     row.dispute_status  ?? undefined,
     customer_confirmed: row.customer_confirmed ?? false,
     created_at:         row.created_at,
   };
@@ -162,6 +163,26 @@ export async function addDispute(id: string, reason: string): Promise<boolean> {
   const { data, error } = await browserClient.rpc('report_dispute_public', {
     order_id: id,
     reason:   reason.trim(),
+  });
+  if (error) throw error;
+  return data === true;
+}
+
+export async function markDisputeResolved(id: string): Promise<void> {
+  const { error } = await browserClient
+    .from('orders')
+    .update({ dispute_status: 'admin_resolved' })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function confirmOrRejectResolution(
+  id: string,
+  confirmed: boolean,
+): Promise<boolean> {
+  const { data, error } = await browserClient.rpc('confirm_dispute_resolution', {
+    order_id:  id,
+    confirmed,
   });
   if (error) throw error;
   return data === true;

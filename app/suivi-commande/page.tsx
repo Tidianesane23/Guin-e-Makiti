@@ -306,7 +306,7 @@ function CancelForm({ order, onCancelled, onClose }: CancelFormProps) {
 
 interface DisputeFormProps {
   order: Order;
-  onDisputed: (id: string) => void;
+  onDisputed: (id: string, status?: Order['dispute_status']) => void;
 }
 
 function DisputeSection({ order, onDisputed }: DisputeFormProps) {
@@ -325,7 +325,13 @@ function DisputeSection({ order, onDisputed }: DisputeFormProps) {
             <p className="text-xs text-gray-600 mt-0.5">Échangez avec notre équipe ci-dessous.</p>
           </div>
           <div className="p-3 bg-white">
-            <DisputeChatLazy orderId={order.id} sender="client" initialDisputeReason={order.dispute_reason} />
+            <DisputeChatLazy
+              orderId={order.id}
+              sender="client"
+              initialDisputeReason={order.dispute_reason}
+              disputeStatus={order.dispute_status ?? null}
+              onStatusChange={(s) => onDisputed(order.id, s)}
+            />
           </div>
         </div>
       </div>
@@ -402,7 +408,7 @@ function DisputeSection({ order, onDisputed }: DisputeFormProps) {
 
 // ─── Single order card ────────────────────────────────────────────────────────
 
-function OrderCard({ order, onConfirmed, onCancelled, onDisputed }: { order: Order; onConfirmed?: (id: string) => void; onCancelled?: (id: string) => void; onDisputed?: (id: string) => void }) {
+function OrderCard({ order, onConfirmed, onCancelled, onDisputed }: { order: Order; onConfirmed?: (id: string) => void; onCancelled?: (id: string) => void; onDisputed?: (id: string, status?: Order['dispute_status']) => void }) {
   const isCancelled       = order.status === 'annule';
   const currentStep       = stepIndex(order.status);
   const statusStyle       = STATUS_COLORS[order.status];
@@ -532,7 +538,7 @@ function OrderCard({ order, onConfirmed, onCancelled, onDisputed }: { order: Ord
       {order.status === 'livre' && !order.customer_confirmed && (
         <>
           <ConfirmForm order={order} onSuccess={() => onConfirmed?.(order.id)} />
-          <DisputeSection order={order} onDisputed={(id) => onDisputed?.(id)} />
+          <DisputeSection order={order} onDisputed={(id, s) => onDisputed?.(id, s)} />
         </>
       )}
       {order.status === 'livre' && order.customer_confirmed && order.dispute_reason && (
@@ -661,9 +667,15 @@ function SuiviContent() {
     );
   };
 
-  const handleDisputed = (id: string, reason: string) => {
+  const handleDisputed = (id: string, statusOrReason?: string) => {
     setOrders((prev) =>
-      prev.map((o) => o.id === id ? { ...o, dispute_reason: reason } : o),
+      prev.map((o) => {
+        if (o.id !== id) return o;
+        if (statusOrReason === 'open' || statusOrReason === 'admin_resolved' || statusOrReason === 'client_confirmed') {
+          return { ...o, dispute_status: statusOrReason as Order['dispute_status'] };
+        }
+        return { ...o, dispute_reason: statusOrReason ?? o.dispute_reason, dispute_status: 'open' };
+      }),
     );
   };
 
@@ -756,7 +768,7 @@ function SuiviContent() {
                 order={order}
                 onConfirmed={handleConfirmed}
                 onCancelled={handleCancelled}
-                onDisputed={(id) => handleDisputed(id, '')}
+                onDisputed={(id) => handleDisputed(id)}
               />
             ))}
           </div>
