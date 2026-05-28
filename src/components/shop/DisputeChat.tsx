@@ -17,6 +17,9 @@ interface DisputeChatProps {
   initialDisputeReason?: string;
   disputeStatus?: 'open' | 'admin_resolved' | 'client_confirmed' | null;
   onStatusChange?: (newStatus: 'open' | 'admin_resolved' | 'client_confirmed') => void;
+  customerEmail?: string;
+  customerName?: string;
+  orderRef?: string;
 }
 
 function isImageUrl(url: string) {
@@ -29,6 +32,9 @@ export default function DisputeChat({
   initialDisputeReason,
   disputeStatus,
   onStatusChange,
+  customerEmail,
+  customerName,
+  orderRef,
 }: DisputeChatProps) {
   const [messages,       setMessages]       = useState<DisputeMessage[]>([]);
   const [text,           setText]           = useState('');
@@ -41,6 +47,15 @@ export default function DisputeChat({
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const isClosed = disputeStatus === 'client_confirmed';
+  const ref = orderRef ?? orderId.slice(0, 8).toUpperCase();
+
+  const notifyOtherParty = (content?: string, fileName?: string) => {
+    fetch('/api/notify-dispute-message', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sender, orderRef: ref, content, fileName, customerEmail, customerName }),
+    }).catch(() => {});
+  };
 
   const load = async () => {
     try {
@@ -68,6 +83,7 @@ export default function DisputeChat({
     try {
       const msg = await sendDisputeMessage(orderId, sender, text.trim());
       setMessages((prev) => [...prev, msg]);
+      notifyOtherParty(text.trim());
       setText('');
     } catch { /* ignore */ }
     setSending(false);
@@ -81,6 +97,7 @@ export default function DisputeChat({
       const url = await uploadDisputeFile(file, orderId);
       const msg = await sendDisputeMessage(orderId, sender, undefined, url, file.name);
       setMessages((prev) => [...prev, msg]);
+      notifyOtherParty(undefined, file.name);
     } catch { /* ignore */ }
     setUploading(false);
     e.target.value = '';

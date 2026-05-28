@@ -331,6 +331,9 @@ function DisputeSection({ order, onDisputed }: DisputeFormProps) {
               initialDisputeReason={order.dispute_reason}
               disputeStatus={order.dispute_status ?? null}
               onStatusChange={(s) => onDisputed(order.id, s)}
+              customerEmail={order.customer_email}
+              customerName={order.customer_name}
+              orderRef={order.id.slice(0, 8).toUpperCase()}
             />
           </div>
         </div>

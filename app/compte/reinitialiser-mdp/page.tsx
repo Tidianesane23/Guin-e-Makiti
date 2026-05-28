@@ -45,7 +45,10 @@ export default function ReinitialiserMdpPage() {
       setIsError(true); setMsg('Erreur : ' + error.message);
     } else {
       setDone(true);
-      setTimeout(() => router.replace('/compte'), 2500);
+      const { data } = await supabase.auth.getUser();
+      const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? 'guineemakiti224@gmail.com';
+      const dest = data.user?.email === adminEmail ? '/admin/dashboard' : '/compte';
+      setTimeout(() => router.replace(dest), 2500);
     }
   };
 

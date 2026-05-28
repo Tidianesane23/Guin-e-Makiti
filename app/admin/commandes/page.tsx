@@ -214,9 +214,10 @@ function OrderDetailModal({ order, onClose, onProofSaved }: { order: Order; onCl
                 sender="admin"
                 initialDisputeReason={order.dispute_reason}
                 disputeStatus={order.dispute_status ?? null}
-                onStatusChange={(s) => {
-                  onProofSaved?.(order.id, s);
-                }}
+                onStatusChange={(s) => onProofSaved?.(order.id, s)}
+                customerEmail={order.customer_email}
+                customerName={order.customer_name}
+                orderRef={order.id.slice(0, 8).toUpperCase()}
               />
             </div>
           )}
