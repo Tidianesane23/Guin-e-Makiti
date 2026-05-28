@@ -83,7 +83,10 @@ export default function ParametresPage() {
       setEmailErr(true); setEmailMsg('Adresse e-mail invalide.'); return;
     }
     setEmailLoading(true);
-    const { error } = await supabase.auth.updateUser({ email });
+    const { error } = await supabase.auth.updateUser(
+      { email },
+      { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/admin/parametres` },
+    );
     setEmailLoading(false);
     if (error) {
       setEmailErr(true); setEmailMsg('Erreur : ' + error.message);
