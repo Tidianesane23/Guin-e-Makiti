@@ -66,7 +66,7 @@ export function useAuth() {
 
   const resetPassword = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/compte/reinitialiser-mdp`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/auth/callback?next=/compte/reinitialiser-mdp`,
     });
     return error;
   }, []);
