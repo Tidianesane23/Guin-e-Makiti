@@ -29,7 +29,9 @@ function mapOrder(row: any): Order {
     total:              row.total_amount,
     status:             row.status as OrderStatus,
     notes:              row.notes,
-    cancel_reason:      row.cancel_reason ?? undefined,
+    cancel_reason:      row.cancel_reason  ?? undefined,
+    dispute_reason:     row.dispute_reason ?? undefined,
+    dispute_proof:      row.dispute_proof  ?? undefined,
     customer_confirmed: row.customer_confirmed ?? false,
     created_at:         row.created_at,
   };
@@ -146,20 +148,38 @@ export async function getOrdersByPhone(phone: string, client?: SupabaseClient): 
   return (data ?? []).map(mapOrder);
 }
 
-export async function cancelOrder(
+export async function cancelOrder(id: string, reason: string): Promise<boolean> {
+  // Utilise le RPC security-definer pour bypasser la RLS anon
+  const { data, error } = await browserClient.rpc('cancel_order_public', {
+    order_id: id,
+    reason:   reason.trim(),
+  });
+  if (error) throw error;
+  return data === true;
+}
+
+export async function addDispute(
   id: string,
   reason: string,
   client?: SupabaseClient,
-): Promise<Order> {
-  const { data, error } = await db(client)
+): Promise<void> {
+  const { error } = await db(client)
     .from('orders')
-    .update({ status: 'annule', cancel_reason: reason.trim() })
-    .eq('id', id)
-    .select()
-    .single();
-
+    .update({ dispute_reason: reason.trim() })
+    .eq('id', id);
   if (error) throw error;
-  return mapOrder(data);
+}
+
+export async function resolveDispute(
+  id: string,
+  proof: string,
+  client?: SupabaseClient,
+): Promise<void> {
+  const { error } = await db(client)
+    .from('orders')
+    .update({ dispute_proof: proof.trim() })
+    .eq('id', id);
+  if (error) throw error;
 }
 
 export async function confirmCustomerReceipt(id: string, client?: SupabaseClient): Promise<void> {

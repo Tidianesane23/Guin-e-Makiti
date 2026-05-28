@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faShoppingBag, faSpinner, faPhone, faStar, faCheckCircle, faRocket, faTimes } from '@/src/lib/icons';
 import { useOrderHistory } from '@/src/hooks/useOrderHistory';
 import { useAuth } from '@/src/hooks/useAuth';
-import { getOrdersByIds, getOrdersByPhone, getOrdersByUserId, confirmCustomerReceipt, cancelOrder } from '@/src/lib/services/orders.service';
+import { getOrdersByIds, getOrdersByPhone, getOrdersByUserId, confirmCustomerReceipt, cancelOrder, addDispute } from '@/src/lib/services/orders.service';
 import { submitReview } from '@/src/lib/services/reviews.service';
 import { incrementStock } from '@/src/lib/services/products.service';
 import { formatPrice } from '@/src/lib/formatters';
@@ -212,7 +212,8 @@ function CancelForm({ order, onCancelled, onClose }: CancelFormProps) {
     setLoading(true);
 
     try {
-      await cancelOrder(order.id, reason.trim());
+      const ok = await cancelOrder(order.id, reason.trim());
+      if (!ok) { setError('Cette commande ne peut plus être annulée.'); setLoading(false); return; }
 
       // Restaurer le stock
       if (order.items.length > 0) {
@@ -298,9 +299,117 @@ function CancelForm({ order, onCancelled, onClose }: CancelFormProps) {
   );
 }
 
+// ─── Dispute form (livré non reçu) ───────────────────────────────────────────
+
+interface DisputeFormProps {
+  order: Order;
+  onDisputed: (id: string) => void;
+}
+
+function DisputeSection({ order, onDisputed }: DisputeFormProps) {
+  const [showForm, setShowForm] = useState(false);
+  const [reason,   setReason]   = useState('');
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState('');
+  const [sent,     setSent]     = useState(false);
+
+  if (order.dispute_reason) {
+    return (
+      <div className="px-5 pb-5">
+        <div className="rounded-xl p-4" style={{ background: '#fff3cd', border: '1.5px solid #ffc107' }}>
+          <p className="text-sm font-semibold text-[#856404] mb-1">⚠️ Litige signalé</p>
+          <p className="text-xs text-gray-600 mb-2">{order.dispute_reason}</p>
+          {order.dispute_proof ? (
+            <div className="mt-2 border-t border-[#ffc10750] pt-2">
+              <p className="text-xs font-semibold text-[#856404] mb-1">Réponse Guinée Makiti :</p>
+              <p className="text-xs text-gray-700">{order.dispute_proof}</p>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 italic">En attente de réponse de notre équipe…</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (sent) {
+    return (
+      <div className="px-5 pb-5">
+        <div className="rounded-xl p-4" style={{ background: '#f0fdf4', border: '1.5px solid #86efac' }}>
+          <p className="text-sm font-semibold text-green-700">Litige envoyé ✓</p>
+          <p className="text-xs text-gray-500 mt-1">Notre équipe va vous contacter rapidement.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!showForm) {
+    return (
+      <div className="px-5 pb-5">
+        <button
+          onClick={() => setShowForm(true)}
+          className="w-full rounded-xl border border-orange-200 py-2.5 text-sm font-semibold text-orange-600 transition-colors hover:bg-orange-50"
+        >
+          Je n&apos;ai pas reçu ma commande
+        </button>
+      </div>
+    );
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!reason.trim()) { setError('Veuillez décrire votre problème.'); return; }
+    setError('');
+    setLoading(true);
+    try {
+      await addDispute(order.id, reason.trim());
+      fetch('/api/notify-dispute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order, reason: reason.trim() }),
+      }).catch(() => {});
+      setSent(true);
+      onDisputed(order.id);
+    } catch {
+      setError('Erreur lors de l\'envoi. Réessayez.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="px-5 pb-5">
+      <div className="rounded-xl p-4" style={{ background: '#fff7ed', border: '1.5px solid #fed7aa' }}>
+        <p className="text-sm font-bold text-orange-800 mb-3">Signaler un problème de livraison</p>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <textarea
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="Décrivez votre problème : le livreur n'est pas passé, le colis était vide…"
+            rows={3}
+            className="w-full rounded-xl border border-orange-200 px-3 py-2.5 text-sm outline-none resize-none transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 bg-white"
+          />
+          {error && <p className="text-xs text-red-500">{error}</p>}
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setShowForm(false)}
+              className="flex-1 rounded-xl border border-gray-200 py-2 text-sm font-semibold text-gray-600 hover:bg-gray-50">
+              Retour
+            </button>
+            <button type="submit" disabled={loading}
+              className="flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-sm font-bold text-white disabled:opacity-60"
+              style={{ background: '#E65100' }}>
+              {loading ? <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 14 }} /> : 'Envoyer'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── Single order card ────────────────────────────────────────────────────────
 
-function OrderCard({ order, onConfirmed, onCancelled }: { order: Order; onConfirmed?: (id: string) => void; onCancelled?: (id: string) => void }) {
+function OrderCard({ order, onConfirmed, onCancelled, onDisputed }: { order: Order; onConfirmed?: (id: string) => void; onCancelled?: (id: string) => void; onDisputed?: (id: string) => void }) {
   const isCancelled       = order.status === 'annule';
   const currentStep       = stepIndex(order.status);
   const statusStyle       = STATUS_COLORS[order.status];
@@ -426,12 +535,15 @@ function OrderCard({ order, onConfirmed, onCancelled }: { order: Order; onConfir
         </div>
       )}
 
-      {/* Confirmation CTA */}
-      {needsConfirmation && (
-        <ConfirmForm
-          order={order}
-          onSuccess={() => onConfirmed?.(order.id)}
-        />
+      {/* Confirmation CTA ou litige */}
+      {order.status === 'livre' && !order.customer_confirmed && (
+        <>
+          <ConfirmForm order={order} onSuccess={() => onConfirmed?.(order.id)} />
+          <DisputeSection order={order} onDisputed={(id) => onDisputed?.(id)} />
+        </>
+      )}
+      {order.status === 'livre' && order.customer_confirmed && order.dispute_reason && (
+        <DisputeSection order={order} onDisputed={(id) => onDisputed?.(id)} />
       )}
 
       {/* Cancel modal */}
@@ -556,6 +668,12 @@ function SuiviContent() {
     );
   };
 
+  const handleDisputed = (id: string, reason: string) => {
+    setOrders((prev) =>
+      prev.map((o) => o.id === id ? { ...o, dispute_reason: reason } : o),
+    );
+  };
+
   const hasLocalOrders = hydrated && history.length > 0;
 
   return (
@@ -640,7 +758,13 @@ function SuiviContent() {
               }
             </p>
             {orders.map((order) => (
-              <OrderCard key={order.id} order={order} onConfirmed={handleConfirmed} onCancelled={handleCancelled} />
+              <OrderCard
+                key={order.id}
+                order={order}
+                onConfirmed={handleConfirmed}
+                onCancelled={handleCancelled}
+                onDisputed={(id) => handleDisputed(id, '')}
+              />
             ))}
           </div>
         ) : hydrated && !refreshing && history.length === 0 && !searched && !user ? (

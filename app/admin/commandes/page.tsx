@@ -7,6 +7,7 @@ import {
   getOrders,
   createOrder,
   updateOrderStatus,
+  resolveDispute,
 } from '@/src/lib/services/orders.service';
 import { getProductsAdmin, incrementStock } from '@/src/lib/services/products.service';
 import { formatPrice } from '@/src/lib/formatters';
@@ -63,11 +64,13 @@ function orderToAdmin(order: Order): AdminOrder {
 
 // ─── Order detail modal ───────────────────────────────────────────────────────
 
-function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => void }) {
+function OrderDetailModal({ order, onClose, onProofSaved }: { order: Order; onClose: () => void; onProofSaved?: (id: string, proof: string) => void }) {
   const st = STATUS_STYLES[order.status];
   const date = new Date(order.created_at).toLocaleDateString('fr-FR', {
     day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
   });
+  const [proof,       setProof]       = useState(order.dispute_proof ?? '');
+  const [savingProof, setSavingProof] = useState(false);
 
   return (
     <div
@@ -186,6 +189,55 @@ function OrderDetailModal({ order, onClose }: { order: Order; onClose: () => voi
               )}
             </div>
           </div>
+
+          {/* Annulation */}
+          {order.cancel_reason && (
+            <div className="px-6 py-4 border-t border-gray-50">
+              <p className="text-xs font-semibold text-gray-400 mb-2 uppercase tracking-wider">Motif d&apos;annulation</p>
+              <p className="text-sm text-gray-600">{order.cancel_reason}</p>
+            </div>
+          )}
+
+          {/* Litige livraison */}
+          {order.dispute_reason && (
+            <div className="px-6 py-4 border-t border-gray-50">
+              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#E65100' }}>
+                ⚠️ Litige — client non réceptionné
+              </p>
+              <div className="rounded-xl p-3 mb-3" style={{ background: '#fff7ed', border: '1px solid #fed7aa' }}>
+                <p className="text-sm text-gray-700">{order.dispute_reason}</p>
+              </div>
+              <p className="text-xs font-semibold text-gray-500 mb-1.5">Votre réponse / preuve de livraison</p>
+              <textarea
+                value={proof}
+                onChange={(e) => setProof(e.target.value)}
+                placeholder="Ex : Bon de réception signé, photo du livreur, numéro de suivi colis… ou URL d'une photo"
+                rows={3}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none resize-none transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 mb-2"
+              />
+              {order.dispute_proof && (
+                <div className="rounded-xl p-3 mb-2" style={{ background: '#f0fdf4', border: '1px solid #86efac' }}>
+                  <p className="text-xs font-semibold text-green-700 mb-1">Réponse envoyée :</p>
+                  <p className="text-sm text-gray-700">{order.dispute_proof}</p>
+                </div>
+              )}
+              <button
+                disabled={savingProof || !proof.trim()}
+                onClick={async () => {
+                  setSavingProof(true);
+                  try {
+                    await resolveDispute(order.id, proof.trim());
+                    onProofSaved?.(order.id, proof.trim());
+                  } catch { /* ignore */ }
+                  setSavingProof(false);
+                }}
+                className="w-full rounded-xl py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{ background: '#009944' }}
+              >
+                {savingProof ? 'Enregistrement…' : 'Enregistrer la réponse'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -426,7 +478,14 @@ export default function CommandesAdminPage() {
 
       {/* Order detail modal */}
       {detailOrder && (
-        <OrderDetailModal order={detailOrder} onClose={() => setDetailOrder(null)} />
+        <OrderDetailModal
+          order={detailOrder}
+          onClose={() => setDetailOrder(null)}
+          onProofSaved={(id, p) => {
+            setOrders((os) => os.map((o) => o.id === id ? { ...o, dispute_proof: p } : o));
+            setDetailOrder((prev) => prev ? { ...prev, dispute_proof: p } : null);
+          }}
+        />
       )}
 
       {/* New order modal */}

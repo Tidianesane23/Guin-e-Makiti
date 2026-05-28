@@ -50,6 +50,8 @@ export interface Order {
   status: OrderStatus;
   notes?: string;
   cancel_reason?: string;
+  dispute_reason?: string;
+  dispute_proof?: string;
   customer_confirmed?: boolean;
   created_at: string;
 }

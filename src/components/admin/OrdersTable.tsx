@@ -34,7 +34,14 @@ const STATUS_STYLES: Record<OrderStatus, { background: string; color: string }> 
   annule:       { background: '#757575', color: '#fff' },
 };
 
-const ALL_STATUSES = Object.keys(STATUS_LABELS) as OrderStatus[];
+// Transitions autorisées depuis un statut donné
+const ALLOWED_NEXT: Record<OrderStatus, OrderStatus[]> = {
+  en_attente:   ['confirme', 'annule'],
+  confirme:     ['en_livraison', 'annule'],
+  en_livraison: ['livre', 'annule'],
+  livre:        [],   // état final
+  annule:       [],   // état final
+};
 
 interface OrdersTableProps {
   orders: AdminOrder[];
@@ -78,39 +85,49 @@ export default function OrdersTable({ orders, onStatusChange, onRowClick }: Orde
                 <td className="max-w-[180px] truncate px-4 py-3 text-gray-500">{o.products}</td>
                 <td className="px-4 py-3 font-semibold text-noir">{formatPrice(o.total)}</td>
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                  <div className="relative inline-block">
-                    <button
-                      onClick={() => setOpenSelect(openSelect === o.id ? null : o.id)}
-                      className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity hover:opacity-80"
+                  {ALLOWED_NEXT[o.status].length === 0 ? (
+                    // État final — badge non cliquable
+                    <span
+                      className="inline-block rounded-full px-2.5 py-1 text-xs font-semibold opacity-70"
                       style={style}
                     >
                       {STATUS_LABELS[o.status]}
-                      <FontAwesomeIcon icon={faChevronDown} style={{ fontSize: 11 }} />
-                    </button>
-                    {openSelect === o.id && (
-                      <>
-                        <div className="fixed inset-0 z-10" onClick={() => setOpenSelect(null)} />
-                        <div className="absolute left-0 top-full z-20 mt-1 min-w-[148px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg">
-                          {ALL_STATUSES.map((s) => {
-                            const st = STATUS_STYLES[s];
-                            return (
-                              <button
-                                key={s}
-                                onClick={() => { onStatusChange(o.id, s); setOpenSelect(null); }}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                              >
-                                <span
-                                  className="h-2 w-2 shrink-0 rounded-full"
-                                  style={{ background: st.background }}
-                                />
-                                {STATUS_LABELS[s]}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                    </span>
+                  ) : (
+                    <div className="relative inline-block">
+                      <button
+                        onClick={() => setOpenSelect(openSelect === o.id ? null : o.id)}
+                        className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity hover:opacity-80"
+                        style={style}
+                      >
+                        {STATUS_LABELS[o.status]}
+                        <FontAwesomeIcon icon={faChevronDown} style={{ fontSize: 11 }} />
+                      </button>
+                      {openSelect === o.id && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setOpenSelect(null)} />
+                          <div className="absolute left-0 top-full z-20 mt-1 min-w-[148px] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg">
+                            {ALLOWED_NEXT[o.status].map((s) => {
+                              const st = STATUS_STYLES[s];
+                              return (
+                                <button
+                                  key={s}
+                                  onClick={() => { onStatusChange(o.id, s); setOpenSelect(null); }}
+                                  className="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                                >
+                                  <span
+                                    className="h-2 w-2 shrink-0 rounded-full"
+                                    style={{ background: st.background }}
+                                  />
+                                  {STATUS_LABELS[s]}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-gray-400">{o.created_at.split('T')[0]}</td>
                 <td className="px-4 py-3">
