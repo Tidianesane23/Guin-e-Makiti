@@ -86,6 +86,7 @@ export async function createOrder(formData: OrderFormData, client?: SupabaseClie
     id,
     customer_name:      formData.customer_name,
     customer_phone:     formData.customer_phone,
+    customer_email:     formData.customer_email,
     items:              formData.items,
     total:              formData.total_amount,
     status:             'en_attente',

@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { formatPrice } from '@/src/lib/formatters';
-import type { CartItem } from '@/src/types';
 
-function emailHtml(order: {
-  id: string;
-  customer_name: string;
-  customer_phone: string;
-  total: number;
-  notes?: string;
-  items: CartItem[];
-}): string {
+function fmtPrice(amount: number): string {
+  return new Intl.NumberFormat('fr-GN', { style: 'currency', currency: 'GNF', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function emailHtml(order: any): string {
   const shortId = order.id.slice(0, 8).toUpperCase();
-  const itemsHtml = order.items
-    .map((i) => `<li style="margin:4px 0;">${i.product?.name ?? 'Produit'} × ${i.quantity}${i.variant ? ` (${i.variant})` : ''}</li>`)
-    .join('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const itemsHtml = (order.items ?? []).map((i: any) =>
+    `<li style="margin:4px 0;">${i.product?.name ?? 'Produit'} × ${i.quantity}${i.variant ? ` (${i.variant})` : ''}</li>`
+  ).join('');
 
   return `<!DOCTYPE html>
 <html lang="fr">
@@ -48,7 +45,7 @@ function emailHtml(order: {
                 ${order.notes ? `<p style="margin:0 0 8px;font-size:14px;color:#333;"><strong>Note :</strong> ${order.notes}</p>` : ''}
                 <p style="margin:12px 0 8px;font-size:13px;font-weight:bold;color:#888;text-transform:uppercase;">Articles</p>
                 <ul style="margin:0;padding-left:18px;font-size:14px;color:#333;">${itemsHtml}</ul>
-                <p style="margin:16px 0 0;font-size:18px;font-weight:bold;color:#C8860A;">${formatPrice(order.total)}</p>
+                <p style="margin:16px 0 0;font-size:18px;font-weight:bold;color:#C8860A;">${fmtPrice(order.total)}</p>
               </td></tr>
             </table>
           </td>

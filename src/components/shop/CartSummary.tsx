@@ -73,12 +73,21 @@ export default function CartSummary({ items }: CartSummaryProps) {
         createdAt: order.created_at,
       });
 
-      // Notification admin (non-bloquant)
+      // Notification admin
       fetch('/api/notify-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(order),
-      }).catch(() => {});
+      }).catch((e) => console.error('[notify-admin]', e));
+
+      // Confirmation au client (seulement si email disponible)
+      if (order.customer_email) {
+        fetch('/api/notify-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order, status: 'en_attente' }),
+        }).catch((e) => console.error('[notify-order]', e));
+      }
 
       clearCart();
       router.push(
