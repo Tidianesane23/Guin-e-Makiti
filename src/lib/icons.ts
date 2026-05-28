@@ -55,6 +55,8 @@ export {
   faLock,
   faGear,
   faBell,
+  faUsers,
+  faHeartBroken,
 } from '@fortawesome/free-solid-svg-icons';
 
 // ─── Brand icons ─────────────────────────────────────────────────────────────

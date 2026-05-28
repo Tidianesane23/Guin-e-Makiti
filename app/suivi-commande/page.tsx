@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faShoppingBag, faSpinner, faPhone, faStar, faCheckCircle, faRocket } from '@/src/lib/icons';
 import { useOrderHistory } from '@/src/hooks/useOrderHistory';
-import { getOrdersByIds, getOrdersByPhone, confirmCustomerReceipt } from '@/src/lib/services/orders.service';
+import { useAuth } from '@/src/hooks/useAuth';
+import { getOrdersByIds, getOrdersByPhone, getOrdersByUserId, confirmCustomerReceipt } from '@/src/lib/services/orders.service';
 import { submitReview } from '@/src/lib/services/reviews.service';
 import { decrementStock } from '@/src/lib/services/products.service';
 import { formatPrice } from '@/src/lib/formatters';
@@ -344,6 +345,7 @@ const POLL_INTERVAL = 30_000; // 30 s
 
 function SuiviContent() {
   const { history, hydrated } = useOrderHistory();
+  const { user } = useAuth();
 
   const [orders,    setOrders]    = useState<Order[]>([]);
   const [phone,     setPhone]     = useState('');
@@ -353,13 +355,25 @@ function SuiviContent() {
   const [error,     setError]     = useState('');
   const [lastSync,  setLastSync]  = useState<Date | null>(null);
 
+  const mergeOrders = (a: Order[], b: Order[]): Order[] => {
+    const map = new Map<string, Order>();
+    [...a, ...b].forEach((o) => map.set(o.id, o));
+    return [...map.values()].sort(
+      (x, y) => new Date(y.created_at).getTime() - new Date(x.created_at).getTime(),
+    );
+  };
+
   // Fetch real statuses from Supabase and merge with local fallback
   const fetchFromSupabase = useCallback(async (ids: string[], silent = false) => {
     if (!silent) setRefreshing(true);
     try {
-      const real = await getOrdersByIds(ids);
-      if (real.length > 0) {
-        setOrders(real);
+      const [byIds, byUser] = await Promise.all([
+        ids.length > 0 ? getOrdersByIds(ids) : Promise.resolve([]),
+        user ? getOrdersByUserId(user.id) : Promise.resolve([]),
+      ]);
+      const merged = mergeOrders(byIds, byUser);
+      if (merged.length > 0) {
+        setOrders(merged);
         setLastSync(new Date());
       }
     } catch {
@@ -367,18 +381,19 @@ function SuiviContent() {
     } finally {
       if (!silent) setRefreshing(false);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // Initial load: show localStorage instantly, then try Supabase
   useEffect(() => {
-    if (!hydrated || history.length === 0) return;
-    setOrders(localOrdersFromHistory(history));
+    if (!hydrated) return;
+    if (history.length > 0) setOrders(localOrdersFromHistory(history));
     fetchFromSupabase(history.map((h) => h.id), true);
   }, [hydrated, history, fetchFromSupabase]);
 
-  // Auto-poll every 30s when local orders exist
+  // Auto-poll every 30s
   useEffect(() => {
-    if (!hydrated || history.length === 0 || searched) return;
+    if (!hydrated || searched) return;
     const id = setInterval(() => {
       fetchFromSupabase(history.map((h) => h.id), true);
     }, POLL_INTERVAL);
@@ -387,7 +402,7 @@ function SuiviContent() {
 
   const handleRefresh = () => {
     if (searched) return;
-    fetchFromSupabase(history.map((h) => h.id));
+    fetchFromSupabase(history.map((h) => h.id), false);
   };
 
   const handleSearch = async (e: FormEvent) => {
@@ -426,7 +441,7 @@ function SuiviContent() {
                 Statut mis à jour en temps réel
               </p>
             </div>
-            {hasLocalOrders && !searched && (
+            {(hasLocalOrders || user) && !searched && (
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
@@ -500,7 +515,7 @@ function SuiviContent() {
               <OrderCard key={order.id} order={order} onConfirmed={handleConfirmed} />
             ))}
           </div>
-        ) : hydrated && history.length === 0 && !searched ? (
+        ) : hydrated && !refreshing && history.length === 0 && !searched && !user ? (
           <div className="flex flex-col items-center gap-4 py-16 text-center">
             <FontAwesomeIcon icon={faShoppingBag} style={{ fontSize: 52, color: '#D1D5DB' }} />
             <div>

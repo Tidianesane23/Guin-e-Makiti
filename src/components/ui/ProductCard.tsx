@@ -5,18 +5,22 @@ import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShoppingCart } from '@/src/lib/icons';
+import { faShoppingCart, faHeart } from '@/src/lib/icons';
 import { Product } from '@/src/types';
 import { formatPrice } from '@/src/lib/formatters';
 import Button from './Button';
 import StockIndicator from './StockIndicator';
 import QuickOrderModal from '@/src/components/shop/QuickOrderModal';
+import { useWishlist } from '@/src/hooks/useWishlist';
 
 interface ProductCardProps { product: Product; dark?: boolean; }
 
 export default function ProductCard({ product, dark = false }: ProductCardProps) {
   const { name, price, promo_price, image_url, stock, slug, images } = product;
   const hasPromo = promo_price !== undefined && promo_price < price;
+
+  const { toggle: toggleWish, isWished } = useWishlist();
+  const wished = isWished(product.id);
 
   const allImages = (images && images.length > 0) ? images : image_url ? [image_url] : [];
   const [currentIdx,  setCurrentIdx]  = useState(0);
@@ -116,6 +120,15 @@ export default function ProductCard({ product, dark = false }: ProductCardProps)
             </span>
           )}
         </div>
+
+        <button
+          onClick={(e) => { e.preventDefault(); toggleWish(product.id); }}
+          className="absolute top-2 right-2 z-10 flex h-7 w-7 items-center justify-center rounded-full transition-all"
+          style={{ background: wished ? 'rgba(192,57,43,0.9)' : 'rgba(0,0,0,0.35)' }}
+          aria-label={wished ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+        >
+          <FontAwesomeIcon icon={faHeart} style={{ fontSize: 12, color: '#fff' }} />
+        </button>
       </Link>
 
       {/* Infos */}

@@ -8,6 +8,7 @@ export interface OrderFormData {
   items: CartItem[];
   total_amount: number;
   notes?: string;
+  user_id?: string;
 }
 
 export interface OrderStats {
@@ -73,6 +74,7 @@ export async function createOrder(formData: OrderFormData, client?: SupabaseClie
       total_amount:   formData.total_amount,
       notes:          formData.notes,
       status:         'en_attente',
+      ...(formData.user_id ? { user_id: formData.user_id } : {}),
     });
 
   if (error) throw error;
@@ -112,6 +114,16 @@ export async function getOrdersByIds(ids: string[], client?: SupabaseClient): Pr
     .from('orders')
     .select('*')
     .in('id', ids)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapOrder);
+}
+
+export async function getOrdersByUserId(userId: string, client?: SupabaseClient): Promise<Order[]> {
+  const { data, error } = await db(client)
+    .from('orders')
+    .select('*')
+    .eq('user_id', userId)
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data ?? []).map(mapOrder);

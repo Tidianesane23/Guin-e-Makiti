@@ -8,6 +8,7 @@ import { getProductBySlug } from '@/src/lib/services/products.service';
 import ProductPageClient from '@/src/components/shop/ProductPageClient';
 import RelatedProducts from '@/src/components/shop/RelatedProducts';
 import ViewTracker from '@/src/components/shop/ViewTracker';
+import ProductReviews from '@/src/components/shop/ProductReviews';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -80,6 +81,9 @@ export default async function ProduitPage({ params }: Props) {
 
         {/* Main layout */}
         <ProductPageClient product={product} images={images} />
+
+        {/* Product reviews */}
+        <ProductReviews productId={product.id} />
 
         {/* Related products */}
         <RelatedProducts currentProductId={product.id} categoryId={product.category_id} />

@@ -250,6 +250,17 @@ export async function decrementStock(
   return { success: true, newStock: data as number };
 }
 
+export async function getProductsByIds(ids: string[], client?: SupabaseClient): Promise<Product[]> {
+  if (ids.length === 0) return [];
+  const { data, error } = await db(client)
+    .from('products')
+    .select('*, category:categories(id, name, slug, image_url, created_at)')
+    .in('id', ids)
+    .eq('is_active', true);
+  if (error) throw error;
+  return (data ?? []).map(mapProduct);
+}
+
 export async function getLowStockProducts(
   threshold = 5,
   client?: SupabaseClient,

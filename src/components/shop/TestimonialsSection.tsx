@@ -160,8 +160,8 @@ export default function TestimonialsSection({ reviews: initialReviews = [] }: Te
         id:            r.id,
         customer_name: r.customer_name,
         rating:        r.rating,
-        comment:       r.comment,
-        product_names: r.product_names,
+        comment:       r.comment ?? '',
+        product_names: r.product_names ?? undefined,
         verified:      true,
       }))
     : STATIC_REVIEWS.map((r) => ({ ...r, verified: false }));

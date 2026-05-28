@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
   faTachometerAlt, faBoxOpen, faTag, faShoppingBag,
-  faSignOutAlt, faCommentDots, faEye, faGear,
+  faSignOutAlt, faCommentDots, faEye, faGear, faUsers,
 } from '@/src/lib/icons';
 import { cn } from '@/src/lib/utils';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -18,6 +18,7 @@ const NAV: { label: string; href: string; icon: IconDefinition }[] = [
   { label: 'Produits',    href: '/admin/produits',     icon: faBoxOpen       },
   { label: 'Catégories',  href: '/admin/categories',   icon: faTag           },
   { label: 'Commandes',   href: '/admin/commandes',    icon: faShoppingBag   },
+  { label: 'Clients',     href: '/admin/clients',      icon: faUsers         },
   { label: 'Avis',        href: '/admin/avis',         icon: faCommentDots   },
   { label: 'Paramètres',  href: '/admin/parametres',   icon: faGear          },
 ];

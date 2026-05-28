@@ -5,9 +5,10 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faSearch, faShoppingCart, faTimes, faShoppingBag, faUser } from '@/src/lib/icons';
+import { faBars, faSearch, faShoppingCart, faTimes, faShoppingBag, faUser, faHeart } from '@/src/lib/icons';
 import { useCart } from '@/src/hooks/useCart';
 import { useAuth } from '@/src/hooks/useAuth';
+import { useWishlist } from '@/src/hooks/useWishlist';
 import LogoText from '@/src/components/ui/LogoText';
 
 const NAV = [
@@ -27,6 +28,7 @@ export default function Header() {
   const router   = useRouter();
   const { itemCount, hydrated } = useCart();
   const { user } = useAuth();
+  const { count: wishCount } = useWishlist();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -163,6 +165,24 @@ export default function Header() {
                 </span>
               ) : (
                 <FontAwesomeIcon icon={faUser} style={{ fontSize: 18, width: 18, height: 18 }} />
+              )}
+            </Link>
+
+            {/* Favoris */}
+            <Link
+              href="/wishlist"
+              aria-label={`Favoris${hydrated && wishCount > 0 ? `, ${wishCount}` : ''}`}
+              className="relative p-2 rounded-xl transition-colors"
+              style={{ background: 'rgba(200,134,10,0.08)', color: '#C8860A' }}
+            >
+              <FontAwesomeIcon icon={faHeart} style={{ fontSize: 18, width: 18, height: 18 }} />
+              {hydrated && wishCount > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 h-4 w-4 flex items-center justify-center rounded-full text-white text-[9px] font-bold leading-none select-none"
+                  style={{ background: '#C0392B', border: '1.5px solid #FFF1EE' }}
+                >
+                  {wishCount > 99 ? '99+' : wishCount}
+                </span>
               )}
             </Link>
 

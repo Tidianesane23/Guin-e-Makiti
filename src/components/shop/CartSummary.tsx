@@ -11,6 +11,7 @@ import { generateWhatsAppLink } from '@/src/lib/whatsapp';
 import { createOrder } from '@/src/lib/services/orders.service';
 import { useCart } from '@/src/hooks/useCart';
 import { useOrderHistory } from '@/src/hooks/useOrderHistory';
+import { useAuth } from '@/src/hooks/useAuth';
 
 interface CartSummaryProps {
   items: CartItem[];
@@ -19,6 +20,7 @@ interface CartSummaryProps {
 export default function CartSummary({ items }: CartSummaryProps) {
   const { clearCart } = useCart();
   const { addOrder }  = useOrderHistory();
+  const { user }      = useAuth();
   const router = useRouter();
 
   const [showModal, setShowModal] = useState(false);
@@ -51,6 +53,7 @@ export default function CartSummary({ items }: CartSummaryProps) {
         items,
         total_amount:   subtotal,
         notes:          notes.trim() || undefined,
+        user_id:        user?.id,
       });
       addOrder({
         id:        order.id,
