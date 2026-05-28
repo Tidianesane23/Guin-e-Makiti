@@ -40,7 +40,7 @@ export function useAuth() {
       password,
       options: {
         data: metadata,
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/compte`,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/auth/callback?next=/compte`,
       },
     });
     return error;
@@ -59,7 +59,7 @@ export function useAuth() {
   const changeEmail = useCallback(async (email: string) => {
     const { error } = await supabase.auth.updateUser(
       { email },
-      { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/compte` },
+      { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/auth/callback?next=/compte` },
     );
     return error;
   }, []);
