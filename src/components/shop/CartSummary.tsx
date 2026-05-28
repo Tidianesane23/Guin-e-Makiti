@@ -63,6 +63,14 @@ export default function CartSummary({ items }: CartSummaryProps) {
         total:     subtotal,
         createdAt: order.created_at,
       });
+
+      // Notification admin (non-bloquant)
+      fetch('/api/notify-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(order),
+      }).catch(() => {});
+
       clearCart();
       router.push(
         `/commande-confirmee?id=${order.id}&nom=${encodeURIComponent(name.trim())}&total=${subtotal}`,
