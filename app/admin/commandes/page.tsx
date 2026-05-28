@@ -12,7 +12,7 @@ import {
 } from '@/src/lib/services/orders.service';
 
 const DisputeChatAdmin = dynamic(() => import('@/src/components/shop/DisputeChat'), { ssr: false });
-import { getProductsAdmin, incrementStock } from '@/src/lib/services/products.service';
+import { getProductsAdmin, incrementStock, decrementStock } from '@/src/lib/services/products.service';
 import { formatPrice } from '@/src/lib/formatters';
 import { cn } from '@/src/lib/utils';
 import type { Order, OrderStatus, Product, CartItem } from '@/src/types';
@@ -352,6 +352,10 @@ export default function CommandesAdminPage() {
         notes:          newNotes.trim() || undefined,
       });
       setOrders((os) => [order, ...os]);
+      // Décrémenter le stock pour chaque article
+      Promise.allSettled(
+        items.map((item) => decrementStock(item.product.id, item.quantity, item.variant)),
+      ).catch(() => {});
       setShowModal(false);
       resetModal();
       showToast('Commande créée', true);
