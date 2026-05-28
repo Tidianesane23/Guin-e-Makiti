@@ -261,6 +261,28 @@ export async function getProductsByIds(ids: string[], client?: SupabaseClient): 
   return (data ?? []).map(mapProduct);
 }
 
+export async function incrementStock(
+  productId: string,
+  quantity: number,
+  variant?: string,
+): Promise<{ success: boolean; newStock: number }> {
+  const { data, error } = await browserClient.rpc('increment_stock', {
+    product_id:   productId,
+    qty:          quantity,
+    variant_name: variant ?? null,
+  });
+
+  if (error) {
+    console.error('[incrementStock] RPC error:', error.message, error.code, error.details);
+    return { success: false, newStock: 0 };
+  }
+  if (data === null || data === undefined) {
+    console.error('[incrementStock] RPC returned null for product', productId);
+    return { success: false, newStock: 0 };
+  }
+  return { success: true, newStock: data as number };
+}
+
 export async function getLowStockProducts(
   threshold = 5,
   client?: SupabaseClient,

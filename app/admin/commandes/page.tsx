@@ -8,7 +8,7 @@ import {
   createOrder,
   updateOrderStatus,
 } from '@/src/lib/services/orders.service';
-import { getProductsAdmin } from '@/src/lib/services/products.service';
+import { getProductsAdmin, incrementStock } from '@/src/lib/services/products.service';
 import { formatPrice } from '@/src/lib/formatters';
 import { cn } from '@/src/lib/utils';
 import type { Order, OrderStatus, Product, CartItem } from '@/src/types';
@@ -247,12 +247,23 @@ export default function CommandesAdminPage() {
   }, []);
 
   const handleStatusChange = async (id: string, status: OrderStatus) => {
-    const prevStatus = orders.find((o) => o.id === id)?.status;
+    const order     = orders.find((o) => o.id === id);
+    const prevStatus = order?.status;
     setOrders((os) => os.map((o) => o.id === id ? { ...o, status } : o));
     try {
       const updated = await updateOrderStatus(id, status);
       showToast('Statut mis à jour', true);
-      // Notification email (non-bloquant)
+
+      // Restaurer le stock si annulation (et n'était pas déjà annulé)
+      if (status === 'annule' && prevStatus !== 'annule' && order?.items?.length) {
+        Promise.allSettled(
+          order.items
+            .filter((item) => item.product?.id)
+            .map((item) => incrementStock(item.product.id, item.quantity, item.variant)),
+        ).catch(() => {});
+      }
+
+      // Notification email client (non-bloquant)
       fetch('/api/notify-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

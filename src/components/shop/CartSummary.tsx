@@ -9,6 +9,7 @@ import type { CartItem } from '@/src/types';
 import { formatPrice } from '@/src/lib/formatters';
 import { generateWhatsAppLink } from '@/src/lib/whatsapp';
 import { createOrder } from '@/src/lib/services/orders.service';
+import { decrementStock } from '@/src/lib/services/products.service';
 import { useCart } from '@/src/hooks/useCart';
 import { useOrderHistory } from '@/src/hooks/useOrderHistory';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -72,6 +73,11 @@ export default function CartSummary({ items }: CartSummaryProps) {
         total:     subtotal,
         createdAt: order.created_at,
       });
+
+      // Décrémenter le stock pour chaque article commandé
+      Promise.allSettled(
+        items.map((item) => decrementStock(item.product.id, item.quantity, item.variant)),
+      ).catch(() => {});
 
       // Notification admin
       fetch('/api/notify-admin', {

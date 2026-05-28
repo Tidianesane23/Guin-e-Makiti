@@ -29,6 +29,7 @@ function mapOrder(row: any): Order {
     total:              row.total_amount,
     status:             row.status as OrderStatus,
     notes:              row.notes,
+    cancel_reason:      row.cancel_reason ?? undefined,
     customer_confirmed: row.customer_confirmed ?? false,
     created_at:         row.created_at,
   };
@@ -143,6 +144,22 @@ export async function getOrdersByPhone(phone: string, client?: SupabaseClient): 
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data ?? []).map(mapOrder);
+}
+
+export async function cancelOrder(
+  id: string,
+  reason: string,
+  client?: SupabaseClient,
+): Promise<Order> {
+  const { data, error } = await db(client)
+    .from('orders')
+    .update({ status: 'annule', cancel_reason: reason.trim() })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return mapOrder(data);
 }
 
 export async function confirmCustomerReceipt(id: string, client?: SupabaseClient): Promise<void> {

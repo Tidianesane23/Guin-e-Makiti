@@ -7,6 +7,7 @@ import { faTimes, faSpinner } from '@/src/lib/icons';
 import type { Product } from '@/src/types';
 import { generateWhatsAppLink } from '@/src/lib/whatsapp';
 import { createOrder } from '@/src/lib/services/orders.service';
+import { decrementStock } from '@/src/lib/services/products.service';
 import { formatPrice } from '@/src/lib/formatters';
 import { useOrderHistory } from '@/src/hooks/useOrderHistory';
 import { useAuth } from '@/src/hooks/useAuth';
@@ -69,13 +70,16 @@ export default function QuickOrderModal({ product, quantity, onClose, initialVar
         user_id:        user?.id,
       });
 
-      // 3. Notifications (non-bloquant)
+      // 3. Décrémenter le stock
+      decrementStock(product.id, quantity, selectedVariant).catch(() => {});
+
+      // 4. Notifications (non-bloquant)
       fetch('/api/notify-admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) }).catch(() => {});
       if (order.customer_email) {
         fetch('/api/notify-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ order, status: 'en_attente' }) }).catch(() => {});
       }
 
-      // 4. Sauvegarder dans localStorage pour le suivi
+      // 5. Sauvegarder dans localStorage pour le suivi
       addOrder({
         id:        order.id,
         shortId:   order.id.slice(0, 8).toUpperCase(),
@@ -84,7 +88,7 @@ export default function QuickOrderModal({ product, quantity, onClose, initialVar
         createdAt: order.created_at,
       });
 
-      // 4. Rediriger vers la confirmation
+      // 6. Rediriger vers la confirmation
       router.push(
         `/commande-confirmee?id=${order.id}&nom=${encodeURIComponent(name.trim())}&total=${total}`,
       );

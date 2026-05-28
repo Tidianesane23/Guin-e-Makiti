@@ -49,6 +49,7 @@ export interface Order {
   total: number;
   status: OrderStatus;
   notes?: string;
+  cancel_reason?: string;
   customer_confirmed?: boolean;
   created_at: string;
 }

@@ -3,12 +3,12 @@
 import { useState, useEffect, useCallback, FormEvent, Suspense } from 'react';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faShoppingBag, faSpinner, faPhone, faStar, faCheckCircle, faRocket } from '@/src/lib/icons';
+import { faSearch, faShoppingBag, faSpinner, faPhone, faStar, faCheckCircle, faRocket, faTimes } from '@/src/lib/icons';
 import { useOrderHistory } from '@/src/hooks/useOrderHistory';
 import { useAuth } from '@/src/hooks/useAuth';
-import { getOrdersByIds, getOrdersByPhone, getOrdersByUserId, confirmCustomerReceipt } from '@/src/lib/services/orders.service';
+import { getOrdersByIds, getOrdersByPhone, getOrdersByUserId, confirmCustomerReceipt, cancelOrder } from '@/src/lib/services/orders.service';
 import { submitReview } from '@/src/lib/services/reviews.service';
-import { decrementStock } from '@/src/lib/services/products.service';
+import { incrementStock } from '@/src/lib/services/products.service';
 import { formatPrice } from '@/src/lib/formatters';
 import type { Order, OrderStatus } from '@/src/types';
 
@@ -110,19 +110,6 @@ function ConfirmForm({ order, onSuccess }: ConfirmFormProps) {
       return;
     }
 
-    // Step 3: decrement stock
-    if (order.items.length > 0) {
-      const stockItems = order.items.filter((item) => item.product?.id);
-      console.log('[stock] items to decrement:', stockItems.map(i => ({ id: i.product.id, qty: i.quantity })));
-      const results = await Promise.allSettled(
-        stockItems.map((item) => decrementStock(item.product.id, item.quantity, item.variant)),
-      );
-      results.forEach((r, i) => {
-        if (r.status === 'rejected') console.error('[stock] decrement rejected:', stockItems[i]?.product?.id, r.reason);
-        else console.log('[stock] decrement ok:', stockItems[i]?.product?.id, r.value);
-      });
-    }
-
     onSuccess();
   };
 
@@ -204,17 +191,126 @@ function ConfirmForm({ order, onSuccess }: ConfirmFormProps) {
   );
 }
 
+// ─── Cancel form ─────────────────────────────────────────────────────────────
+
+interface CancelFormProps {
+  order: Order;
+  onCancelled: (id: string) => void;
+  onClose: () => void;
+}
+
+function CancelForm({ order, onCancelled, onClose }: CancelFormProps) {
+  const [reason,  setReason]  = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState('');
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!reason.trim()) { setError('Veuillez indiquer le motif de l\'annulation.'); return; }
+
+    setError('');
+    setLoading(true);
+
+    try {
+      await cancelOrder(order.id, reason.trim());
+
+      // Restaurer le stock
+      if (order.items.length > 0) {
+        Promise.allSettled(
+          order.items
+            .filter((item) => item.product?.id)
+            .map((item) => incrementStock(item.product.id, item.quantity, item.variant)),
+        ).catch(() => {});
+      }
+
+      // Notifier l'admin par email
+      fetch('/api/notify-cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order, reason: reason.trim() }),
+      }).catch(() => {});
+
+      onCancelled(order.id);
+    } catch {
+      setError('Erreur lors de l\'annulation. Réessayez.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-bold text-noir">Annuler la commande</h2>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 transition-colors"
+          >
+            <FontAwesomeIcon icon={faTimes} style={{ fontSize: 18 }} />
+          </button>
+        </div>
+
+        <p className="mb-4 text-sm text-gray-500">
+          Commande <span className="font-mono font-semibold text-noir">#{order.id.slice(0, 8).toUpperCase()}</span>
+          {' '}— {formatPrice(order.total)}
+        </p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-noir">
+              Motif de l&apos;annulation <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Ex : Je ne suis plus intéressé, j'ai trouvé moins cher ailleurs…"
+              rows={3}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none resize-none transition-colors focus:border-red-400 focus:ring-1 focus:ring-red-400"
+            />
+          </div>
+
+          {error && <p className="text-xs text-red-500">{error}</p>}
+
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+            >
+              Retour
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+              style={{ background: '#C0392B' }}
+            >
+              {loading
+                ? <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 16 }} />
+                : 'Confirmer l\'annulation'
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ─── Single order card ────────────────────────────────────────────────────────
 
-function OrderCard({ order, onConfirmed }: { order: Order; onConfirmed?: (id: string) => void }) {
+function OrderCard({ order, onConfirmed, onCancelled }: { order: Order; onConfirmed?: (id: string) => void; onCancelled?: (id: string) => void }) {
   const isCancelled       = order.status === 'annule';
   const currentStep       = stepIndex(order.status);
   const statusStyle       = STATUS_COLORS[order.status];
   const needsConfirmation = order.status === 'livre' && !order.customer_confirmed;
   const isConfirmed       = order.status === 'livre' && order.customer_confirmed;
+  const canCancel         = !isCancelled && order.status !== 'livre';
   const date              = new Date(order.created_at).toLocaleDateString('fr-FR', {
     day: 'numeric', month: 'long', year: 'numeric',
   });
+  const [showCancel, setShowCancel] = useState(false);
 
   return (
     <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
@@ -273,9 +369,14 @@ function OrderCard({ order, onConfirmed }: { order: Order; onConfirmed?: (id: st
         </div>
 
         {isCancelled ? (
-          <p className="text-sm text-gray-400 text-center py-2">
-            Cette commande a été annulée.
-          </p>
+          <div className="text-center py-2">
+            <p className="text-sm text-gray-400">Cette commande a été annulée.</p>
+            {order.cancel_reason && (
+              <p className="mt-1 text-xs text-gray-400">
+                Motif : <span className="italic">{order.cancel_reason}</span>
+              </p>
+            )}
+          </div>
         ) : (
           <div className="flex items-center gap-0">
             {STATUS_STEPS.map((step, i) => {
@@ -313,11 +414,32 @@ function OrderCard({ order, onConfirmed }: { order: Order; onConfirmed?: (id: st
         )}
       </div>
 
+      {/* Cancel button */}
+      {canCancel && (
+        <div className="px-5 pb-4">
+          <button
+            onClick={() => setShowCancel(true)}
+            className="w-full rounded-xl border border-red-200 py-2.5 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50"
+          >
+            Annuler ma commande
+          </button>
+        </div>
+      )}
+
       {/* Confirmation CTA */}
       {needsConfirmation && (
         <ConfirmForm
           order={order}
           onSuccess={() => onConfirmed?.(order.id)}
+        />
+      )}
+
+      {/* Cancel modal */}
+      {showCancel && (
+        <CancelForm
+          order={order}
+          onCancelled={(id) => { setShowCancel(false); onCancelled?.(id); }}
+          onClose={() => setShowCancel(false)}
         />
       )}
     </div>
@@ -428,6 +550,12 @@ function SuiviContent() {
     );
   };
 
+  const handleCancelled = (id: string) => {
+    setOrders((prev) =>
+      prev.map((o) => o.id === id ? { ...o, status: 'annule' as OrderStatus } : o),
+    );
+  };
+
   const hasLocalOrders = hydrated && history.length > 0;
 
   return (
@@ -512,7 +640,7 @@ function SuiviContent() {
               }
             </p>
             {orders.map((order) => (
-              <OrderCard key={order.id} order={order} onConfirmed={handleConfirmed} />
+              <OrderCard key={order.id} order={order} onConfirmed={handleConfirmed} onCancelled={handleCancelled} />
             ))}
           </div>
         ) : hydrated && !refreshing && history.length === 0 && !searched && !user ? (
