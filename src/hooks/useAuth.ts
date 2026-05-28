@@ -64,5 +64,12 @@ export function useAuth() {
     return error;
   }, []);
 
-  return { user, loading, signIn, signOut, signUp, updateProfile, changePassword, changeEmail };
+  const resetPassword = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/compte/reinitialiser-mdp`,
+    });
+    return error;
+  }, []);
+
+  return { user, loading, signIn, signOut, signUp, updateProfile, changePassword, changeEmail, resetPassword };
 }

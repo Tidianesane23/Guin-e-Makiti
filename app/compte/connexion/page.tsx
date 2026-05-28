@@ -58,10 +58,11 @@ function Field({
 }
 
 export default function CompteConnexionPage() {
-  const { user, loading, signIn, signUp } = useAuth();
+  const { user, loading, signIn, signUp, resetPassword } = useAuth();
   const router = useRouter();
 
   const [tab,      setTab]      = useState<Tab>('login');
+  const [forgot,   setForgot]   = useState(false);
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [confirm,  setConfirm]  = useState('');
@@ -87,6 +88,17 @@ export default function CompteConnexionPage() {
     const error = await signIn(email, password);
     setBusy(false);
     if (error) { setIsError(true); setMsg('Email ou mot de passe incorrect.'); }
+  };
+
+  const handleForgot = async (e: FormEvent) => {
+    e.preventDefault();
+    reset();
+    if (!email.includes('@')) { setIsError(true); setMsg('Adresse e-mail invalide.'); return; }
+    setBusy(true);
+    const error = await resetPassword(email);
+    setBusy(false);
+    if (error) { setIsError(true); setMsg('Erreur : ' + error.message); }
+    else { setIsError(false); setMsg(`Lien de réinitialisation envoyé à ${email}. Vérifiez votre boîte mail.`); }
   };
 
   const handleSignup = async (e: FormEvent) => {
@@ -188,9 +200,37 @@ export default function CompteConnexionPage() {
                 transition={{ duration: 0.2 }}
               >
                 {tab === 'login' ? (
+                  forgot ? (
+                    <form onSubmit={handleForgot} className="flex flex-col gap-4">
+                      <p className="text-sm text-gray-500">
+                        Entrez votre adresse e-mail, nous vous enverrons un lien pour réinitialiser votre mot de passe.
+                      </p>
+                      <Field icon={faUser} type="email" value={email} onChange={setEmail} placeholder="Votre adresse e-mail" required />
+
+                      {msg && <Feedback msg={msg} isError={isError} />}
+
+                      <button
+                        type="submit" disabled={busy}
+                        className="flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                        style={{ background: 'linear-gradient(135deg,#C8860A,#E6A020)' }}
+                      >
+                        {busy ? <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 16 }} /> : 'Envoyer le lien'}
+                      </button>
+                      <button type="button" onClick={() => { setForgot(false); reset(); }}
+                        className="text-xs font-medium text-center transition-colors" style={{ color: '#7A4A3A' }}>
+                        ← Retour à la connexion
+                      </button>
+                    </form>
+                  ) : (
                   <form onSubmit={handleLogin} className="flex flex-col gap-4">
                     <Field icon={faUser}  type="email"    value={email}    onChange={setEmail}    placeholder="Votre adresse e-mail" required />
-                    <Field icon={faLock}  type="password" value={password} onChange={setPassword} placeholder="Mot de passe"         required />
+                    <div className="flex flex-col gap-1">
+                      <Field icon={faLock}  type="password" value={password} onChange={setPassword} placeholder="Mot de passe" required />
+                      <button type="button" onClick={() => { setForgot(true); reset(); }}
+                        className="self-end text-xs font-medium transition-colors" style={{ color: '#C8860A' }}>
+                        Mot de passe oublié ?
+                      </button>
+                    </div>
 
                     {msg && <Feedback msg={msg} isError={isError} />}
 
@@ -202,6 +242,7 @@ export default function CompteConnexionPage() {
                       {busy ? <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 16 }} /> : 'Se connecter'}
                     </button>
                   </form>
+                  )
                 ) : (
                   <form onSubmit={handleSignup} className="flex flex-col gap-4">
 
