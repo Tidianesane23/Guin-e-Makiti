@@ -30,16 +30,26 @@ export function useAuth() {
     await supabase.auth.signOut();
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string) => {
+  const signUp = useCallback(async (
+    email: string,
+    password: string,
+    metadata?: Record<string, string>,
+  ) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin}/compte`,
+        data: metadata,
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/compte`,
       },
     });
     return error;
   }, []);
 
-  return { user, loading, signIn, signOut, signUp };
+  const updateProfile = useCallback(async (data: Record<string, string>) => {
+    const { error } = await supabase.auth.updateUser({ data });
+    return error;
+  }, []);
+
+  return { user, loading, signIn, signOut, signUp, updateProfile };
 }
