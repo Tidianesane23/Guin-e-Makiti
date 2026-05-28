@@ -67,6 +67,7 @@ export default function CompteConnexionPage() {
   const [confirm,  setConfirm]  = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName,  setLastName]  = useState('');
+  const [gender,    setGender]    = useState('');
   const [phone,     setPhone]     = useState('');
   const [address,   setAddress]   = useState('');
   const [busy,     setBusy]     = useState(false);
@@ -104,6 +105,7 @@ export default function CompteConnexionPage() {
     const error = await signUp(email, password, {
       first_name: firstName.trim(),
       last_name:  lastName.trim(),
+      gender,
       phone:      phone.trim(),
       address:    address.trim(),
     });
@@ -209,6 +211,7 @@ export default function CompteConnexionPage() {
                       <HalfField value={firstName} onChange={setFirstName} placeholder="Prénom" required />
                       <HalfField value={lastName}  onChange={setLastName}  placeholder="Nom de famille" />
                     </div>
+                    <GenderPicker value={gender} onChange={setGender} />
 
                     {/* Section : Contact */}
                     <SectionLabel>Contact &amp; Adresse</SectionLabel>
@@ -248,6 +251,43 @@ export default function CompteConnexionPage() {
           </div>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+const GENDERS = [
+  { value: 'homme',      label: 'Homme' },
+  { value: 'femme',      label: 'Femme' },
+  { value: 'non_precise', label: 'Je préfère ne pas préciser' },
+];
+
+function GenderPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#7A4A3A' }}>
+        Sexe <span className="normal-case font-normal text-gray-400">(optionnel)</span>
+      </span>
+      <div className="flex gap-2 flex-wrap">
+        {GENDERS.map(({ value: v, label }) => {
+          const active = value === v;
+          return (
+            <button
+              key={v}
+              type="button"
+              onClick={() => onChange(active ? '' : v)}
+              className="flex-1 min-w-0 rounded-xl py-2.5 px-3 text-xs font-semibold transition-all"
+              style={{
+                background:  active ? 'rgba(200,134,10,0.12)' : '#FFFAF8',
+                border:      `1.5px solid ${active ? '#C8860A' : 'rgba(200,134,10,0.25)'}`,
+                color:       active ? '#C8860A' : '#7A4A3A',
+                boxShadow:   active ? '0 0 0 3px rgba(200,134,10,0.08)' : 'none',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

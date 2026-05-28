@@ -40,6 +40,7 @@ export default function ComptePage() {
 
   const [firstName, setFirstName] = useState('');
   const [lastName,  setLastName]  = useState('');
+  const [gender,    setGender]    = useState('');
   const [phone,     setPhone]     = useState('');
   const [address,   setAddress]   = useState('');
 
@@ -51,6 +52,7 @@ export default function ComptePage() {
     if (user) {
       setFirstName(meta.first_name ?? '');
       setLastName(meta.last_name  ?? '');
+      setGender(meta.gender       ?? '');
       setPhone(meta.phone         ?? '');
       setAddress(meta.address     ?? '');
     }
@@ -77,6 +79,7 @@ export default function ComptePage() {
     const error = await updateProfile({
       first_name: firstName.trim(),
       last_name:  lastName.trim(),
+      gender,
       phone:      phone.trim(),
       address:    address.trim(),
     });
@@ -145,6 +148,7 @@ export default function ComptePage() {
             <div className="px-6 pb-4">
               <InfoRow icon={faUser}         label="Prénom"    value={meta.first_name} />
               <InfoRow icon={faUser}         label="Nom"       value={meta.last_name} />
+              <InfoRow icon={faUser}         label="Sexe"      value={GENDER_LABEL[meta.gender ?? '']} />
               <InfoRow icon={faPhone}        label="Téléphone" value={meta.phone} />
               <InfoRow icon={faMapMarkerAlt} label="Adresse"   value={meta.address} />
             </div>
@@ -154,6 +158,7 @@ export default function ComptePage() {
                 <EditField label="Prénom"     value={firstName} onChange={setFirstName} placeholder="Mamadou" />
                 <EditField label="Nom"        value={lastName}  onChange={setLastName}  placeholder="Diallo"   />
               </div>
+              <GenderPickerEdit value={gender} onChange={setGender} />
               <EditField label="Téléphone"  value={phone}     onChange={setPhone}     placeholder="620 00 00 00" type="tel" />
               <EditField label="Adresse / Quartier" value={address} onChange={setAddress} placeholder="ex: Kaloum, Conakry" />
 
@@ -214,6 +219,47 @@ export default function ComptePage() {
           </button>
         </motion.div>
 
+      </div>
+    </div>
+  );
+}
+
+const GENDER_LABEL: Record<string, string> = {
+  homme:       'Homme',
+  femme:       'Femme',
+  non_precise: 'Je préfère ne pas préciser',
+};
+
+const GENDERS = [
+  { value: 'homme',       label: 'Homme' },
+  { value: 'femme',       label: 'Femme' },
+  { value: 'non_precise', label: 'Je préfère ne pas préciser' },
+];
+
+function GenderPickerEdit({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Sexe</label>
+      <div className="flex gap-2 flex-wrap">
+        {GENDERS.map(({ value: v, label }) => {
+          const active = value === v;
+          return (
+            <button
+              key={v}
+              type="button"
+              onClick={() => onChange(active ? '' : v)}
+              className="flex-1 min-w-0 rounded-xl py-2 px-2 text-xs font-semibold transition-all"
+              style={{
+                background: active ? 'rgba(200,134,10,0.12)' : '#FFFAF8',
+                border:     `1.5px solid ${active ? '#C8860A' : 'rgba(200,134,10,0.25)'}`,
+                color:      active ? '#C8860A' : '#7A4A3A',
+                boxShadow:  active ? '0 0 0 3px rgba(200,134,10,0.08)' : 'none',
+              }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
