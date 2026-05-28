@@ -51,5 +51,18 @@ export function useAuth() {
     return error;
   }, []);
 
-  return { user, loading, signIn, signOut, signUp, updateProfile };
+  const changePassword = useCallback(async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    return error;
+  }, []);
+
+  const changeEmail = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.updateUser(
+      { email },
+      { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ''}/compte` },
+    );
+    return error;
+  }, []);
+
+  return { user, loading, signIn, signOut, signUp, updateProfile, changePassword, changeEmail };
 }

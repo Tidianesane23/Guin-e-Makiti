@@ -6,9 +6,9 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faUser, faPhone, faMapMarkerAlt, faEdit, faCheck,
+  faUser, faPhone, faMapMarkerAlt, faEdit, faCheck, faLock,
   faShoppingBag, faSignOutAlt, faTruck, faSpinner,
-  faCheckCircle, faExclamationCircle, faChevronRight,
+  faCheckCircle, faExclamationCircle, faChevronRight, faChevronDown,
 } from '@/src/lib/icons';
 import { useAuth } from '@/src/hooks/useAuth';
 
@@ -28,13 +28,28 @@ function InfoRow({ icon, label, value }: { icon: typeof faUser; label: string; v
 }
 
 export default function ComptePage() {
-  const { user, loading, signOut, updateProfile } = useAuth();
+  const { user, loading, signOut, updateProfile, changePassword, changeEmail } = useAuth();
   const router = useRouter();
 
   const [editing,  setEditing]  = useState(false);
   const [busy,     setBusy]     = useState(false);
   const [saved,    setSaved]    = useState(false);
   const [errMsg,   setErrMsg]   = useState('');
+
+  // — Sécurité : mot de passe
+  const [pwdOpen,    setPwdOpen]    = useState(false);
+  const [newPwd,     setNewPwd]     = useState('');
+  const [confirmPwd, setConfirmPwd] = useState('');
+  const [pwdBusy,    setPwdBusy]    = useState(false);
+  const [pwdMsg,     setPwdMsg]     = useState('');
+  const [pwdErr,     setPwdErr]     = useState(false);
+
+  // — Sécurité : email
+  const [emailOpen,  setEmailOpen]  = useState(false);
+  const [newEmail,   setNewEmail]   = useState('');
+  const [emailBusy,  setEmailBusy]  = useState(false);
+  const [emailMsg,   setEmailMsg]   = useState('');
+  const [emailErr,   setEmailErr]   = useState(false);
 
   const meta = user?.user_metadata ?? {};
 
@@ -66,6 +81,29 @@ export default function ComptePage() {
       </div>
     );
   }
+
+  const handlePwd = async (e: FormEvent) => {
+    e.preventDefault();
+    setPwdMsg(''); setPwdErr(false);
+    if (newPwd !== confirmPwd) { setPwdErr(true); setPwdMsg('Les mots de passe ne correspondent pas.'); return; }
+    if (newPwd.length < 8)     { setPwdErr(true); setPwdMsg('Minimum 8 caractères.'); return; }
+    setPwdBusy(true);
+    const error = await changePassword(newPwd);
+    setPwdBusy(false);
+    if (error) { setPwdErr(true); setPwdMsg('Erreur : ' + error.message); }
+    else { setPwdErr(false); setPwdMsg('Mot de passe mis à jour !'); setNewPwd(''); setConfirmPwd(''); setPwdOpen(false); }
+  };
+
+  const handleEmail = async (e: FormEvent) => {
+    e.preventDefault();
+    setEmailMsg(''); setEmailErr(false);
+    if (!newEmail.includes('@')) { setEmailErr(true); setEmailMsg('Adresse e-mail invalide.'); return; }
+    setEmailBusy(true);
+    const error = await changeEmail(newEmail);
+    setEmailBusy(false);
+    if (error) { setEmailErr(true); setEmailMsg('Erreur : ' + error.message); }
+    else { setEmailErr(false); setEmailMsg(`Confirmation envoyée à ${newEmail}. Vérifiez votre boîte mail.`); setNewEmail(''); setEmailOpen(false); }
+  };
 
   const displayName = [meta.first_name, meta.last_name].filter(Boolean).join(' ') || user.email;
   const initials    = meta.first_name
@@ -205,6 +243,82 @@ export default function ComptePage() {
           <QuickLink icon={faShoppingBag} label="Parcourir la boutique" desc="Découvrir nos produits disponibles" href="/boutique" />
         </motion.div>
 
+        {/* Sécurité */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.18 }}
+          className="rounded-2xl bg-white shadow-sm overflow-hidden"
+          style={{ border: '1px solid rgba(200,134,10,0.12)' }}
+        >
+          <p className="px-6 pt-5 pb-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Sécurité</p>
+
+          {/* Changer le mot de passe */}
+          <div style={{ borderTop: '1px solid rgba(200,134,10,0.08)' }}>
+            <button
+              type="button"
+              onClick={() => { setPwdOpen(v => !v); setPwdMsg(''); }}
+              className="w-full flex items-center justify-between px-6 py-4 transition-colors hover:bg-[rgba(200,134,10,0.03)]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center rounded-xl"
+                  style={{ width: 36, height: 36, background: 'rgba(200,134,10,0.1)', color: '#C8860A' }}>
+                  <FontAwesomeIcon icon={faLock} style={{ fontSize: 14 }} />
+                </div>
+                <span className="text-sm font-semibold text-[#2C1A1A]">Changer le mot de passe</span>
+              </div>
+              <FontAwesomeIcon icon={faChevronDown}
+                style={{ fontSize: 12, color: '#C8860A', transition: 'transform 0.2s', transform: pwdOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+            </button>
+
+            {pwdOpen && (
+              <form onSubmit={handlePwd} className="px-6 pb-5 flex flex-col gap-3">
+                <EditField label="Nouveau mot de passe"   value={newPwd}     onChange={setNewPwd}     placeholder="Min. 8 caractères" type="password" />
+                <EditField label="Confirmer"              value={confirmPwd} onChange={setConfirmPwd} placeholder="Répéter le mot de passe" type="password" />
+                {pwdMsg && <SecurityFeedback msg={pwdMsg} isError={pwdErr} />}
+                <button type="submit" disabled={pwdBusy}
+                  className="self-start flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg,#C8860A,#E6A020)' }}>
+                  {pwdBusy ? <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 13 }} /> : 'Mettre à jour'}
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* Changer l'adresse e-mail */}
+          <div style={{ borderTop: '1px solid rgba(200,134,10,0.08)' }}>
+            <button
+              type="button"
+              onClick={() => { setEmailOpen(v => !v); setEmailMsg(''); }}
+              className="w-full flex items-center justify-between px-6 py-4 transition-colors hover:bg-[rgba(200,134,10,0.03)]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center rounded-xl"
+                  style={{ width: 36, height: 36, background: 'rgba(200,134,10,0.1)', color: '#C8860A' }}>
+                  <FontAwesomeIcon icon={faUser} style={{ fontSize: 14 }} />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold text-[#2C1A1A]">Changer l'adresse e-mail</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{user.email}</p>
+                </div>
+              </div>
+              <FontAwesomeIcon icon={faChevronDown}
+                style={{ fontSize: 12, color: '#C8860A', transition: 'transform 0.2s', transform: emailOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+            </button>
+
+            {emailOpen && (
+              <form onSubmit={handleEmail} className="px-6 pb-5 flex flex-col gap-3">
+                <EditField label="Nouvelle adresse e-mail" value={newEmail} onChange={setNewEmail} placeholder="nouvelle@adresse.com" type="email" />
+                <p className="text-xs text-gray-400">Un e-mail de confirmation sera envoyé à la nouvelle adresse.</p>
+                {emailMsg && <SecurityFeedback msg={emailMsg} isError={emailErr} />}
+                <button type="submit" disabled={emailBusy}
+                  className="self-start flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg,#C8860A,#E6A020)' }}>
+                  {emailBusy ? <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 13 }} /> : 'Envoyer la confirmation'}
+                </button>
+              </form>
+            )}
+          </div>
+        </motion.div>
+
         {/* Déconnexion */}
         <motion.div
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.18 }}
@@ -282,6 +396,20 @@ function EditField({ label, value, onChange, placeholder, type = 'text' }: {
         onBlur={(e)  => { e.currentTarget.style.borderColor = 'rgba(200,134,10,0.25)'; e.currentTarget.style.boxShadow = 'none'; }}
       />
     </div>
+  );
+}
+
+function SecurityFeedback({ msg, isError }: { msg: string; isError: boolean }) {
+  return (
+    <p className="flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs font-medium"
+      style={{
+        background: isError ? 'rgba(192,57,43,0.07)' : 'rgba(0,153,68,0.07)',
+        border:     `1px solid ${isError ? 'rgba(192,57,43,0.15)' : 'rgba(0,153,68,0.15)'}`,
+        color:      isError ? '#C0392B' : '#007A38',
+      }}>
+      <FontAwesomeIcon icon={isError ? faExclamationCircle : faCheckCircle} style={{ fontSize: 12, marginTop: 1, flexShrink: 0 }} />
+      {msg}
+    </p>
   );
 }
 
