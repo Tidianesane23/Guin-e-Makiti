@@ -59,6 +59,8 @@ function orderToAdmin(order: Order): AdminOrder {
     total:          order.total,
     status:         order.status,
     created_at:     order.created_at,
+    cancel_reason:  order.cancel_reason,
+    dispute_reason: order.dispute_reason,
   };
 }
 

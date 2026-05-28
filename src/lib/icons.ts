@@ -9,6 +9,7 @@ export {
   faCreditCard,
   faCheck,
   faArrowRight,
+  faArrowLeft,
   faTag,
   faBox,
   faBoxOpen,

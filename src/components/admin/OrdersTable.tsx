@@ -16,6 +16,8 @@ export interface AdminOrder {
   total: number;
   status: OrderStatus;
   created_at: string;
+  cancel_reason?: string;
+  dispute_reason?: string;
 }
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -85,14 +87,29 @@ export default function OrdersTable({ orders, onStatusChange, onRowClick }: Orde
                 <td className="max-w-[180px] truncate px-4 py-3 text-gray-500">{o.products}</td>
                 <td className="px-4 py-3 font-semibold text-noir">{formatPrice(o.total)}</td>
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex flex-col gap-1">
                   {ALLOWED_NEXT[o.status].length === 0 ? (
                     // État final — badge non cliquable
-                    <span
-                      className="inline-block rounded-full px-2.5 py-1 text-xs font-semibold opacity-70"
-                      style={style}
-                    >
-                      {STATUS_LABELS[o.status]}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <span
+                        className="inline-block rounded-full px-2.5 py-1 text-xs font-semibold opacity-70"
+                        style={style}
+                      >
+                        {STATUS_LABELS[o.status]}
+                      </span>
+                      {o.status === 'annule' && (
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                          style={{ background: o.cancel_reason ? '#EF444420' : '#9CA3AF20', color: o.cancel_reason ? '#B91C1C' : '#6B7280' }}>
+                          {o.cancel_reason ? 'Client' : 'Admin'}
+                        </span>
+                      )}
+                      {o.dispute_reason && (
+                        <span className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                          style={{ background: '#FEF3C7', color: '#92400E' }}>
+                          ⚠️ Litige
+                        </span>
+                      )}
+                    </div>
                   ) : (
                     <div className="relative inline-block">
                       <button
@@ -128,6 +145,7 @@ export default function OrdersTable({ orders, onStatusChange, onRowClick }: Orde
                       )}
                     </div>
                   )}
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-gray-400">{o.created_at.split('T')[0]}</td>
                 <td className="px-4 py-3">
