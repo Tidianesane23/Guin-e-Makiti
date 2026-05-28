@@ -14,8 +14,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const isLoginPage = pathname === '/admin/login';
-  const adminEmail  = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-  const isAdmin     = adminEmail ? user?.email === adminEmail : true;
+  // Vérification robuste : métadonnée Supabase en priorité, fallback email
+  const isAdmin = user?.app_metadata?.is_admin === true
+    || (process.env.NEXT_PUBLIC_ADMIN_EMAIL
+      ? user?.email?.trim().toLowerCase() === process.env.NEXT_PUBLIC_ADMIN_EMAIL.trim().toLowerCase()
+      : false);
 
   useEffect(() => {
     if (loading) return;
