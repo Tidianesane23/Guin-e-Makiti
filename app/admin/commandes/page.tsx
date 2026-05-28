@@ -3,12 +3,15 @@
 import { useState, useEffect, useMemo, useCallback, FormEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faTimes, faMinus, faChevronLeft, faChevronRight, faSearch, faPhone, faUser, faStar } from '@/src/lib/icons';
+import dynamic from 'next/dynamic';
 import {
   getOrders,
   createOrder,
   updateOrderStatus,
   resolveDispute,
 } from '@/src/lib/services/orders.service';
+
+const DisputeChatAdmin = dynamic(() => import('@/src/components/shop/DisputeChat'), { ssr: false });
 import { getProductsAdmin, incrementStock } from '@/src/lib/services/products.service';
 import { formatPrice } from '@/src/lib/formatters';
 import { cn } from '@/src/lib/utils';
@@ -200,44 +203,17 @@ function OrderDetailModal({ order, onClose, onProofSaved }: { order: Order; onCl
             </div>
           )}
 
-          {/* Litige livraison */}
+          {/* Litige livraison — chat en temps réel */}
           {order.dispute_reason && (
             <div className="px-6 py-4 border-t border-gray-50">
-              <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#E65100' }}>
-                ⚠️ Litige — client non réceptionné
+              <p className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: '#E65100' }}>
+                ⚠️ Litige — échange avec le client
               </p>
-              <div className="rounded-xl p-3 mb-3" style={{ background: '#fff7ed', border: '1px solid #fed7aa' }}>
-                <p className="text-sm text-gray-700">{order.dispute_reason}</p>
-              </div>
-              <p className="text-xs font-semibold text-gray-500 mb-1.5">Votre réponse / preuve de livraison</p>
-              <textarea
-                value={proof}
-                onChange={(e) => setProof(e.target.value)}
-                placeholder="Ex : Bon de réception signé, photo du livreur, numéro de suivi colis… ou URL d'une photo"
-                rows={3}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none resize-none transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 mb-2"
+              <DisputeChatAdmin
+                orderId={order.id}
+                sender="admin"
+                initialDisputeReason={order.dispute_reason}
               />
-              {order.dispute_proof && (
-                <div className="rounded-xl p-3 mb-2" style={{ background: '#f0fdf4', border: '1px solid #86efac' }}>
-                  <p className="text-xs font-semibold text-green-700 mb-1">Réponse envoyée :</p>
-                  <p className="text-sm text-gray-700">{order.dispute_proof}</p>
-                </div>
-              )}
-              <button
-                disabled={savingProof || !proof.trim()}
-                onClick={async () => {
-                  setSavingProof(true);
-                  try {
-                    await resolveDispute(order.id, proof.trim());
-                    onProofSaved?.(order.id, proof.trim());
-                  } catch { /* ignore */ }
-                  setSavingProof(false);
-                }}
-                className="w-full rounded-xl py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                style={{ background: '#009944' }}
-              >
-                {savingProof ? 'Enregistrement…' : 'Enregistrer la réponse'}
-              </button>
             </div>
           )}
         </div>

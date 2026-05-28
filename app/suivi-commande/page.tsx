@@ -6,7 +6,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faShoppingBag, faSpinner, faPhone, faStar, faCheckCircle, faRocket, faTimes } from '@/src/lib/icons';
 import { useOrderHistory } from '@/src/hooks/useOrderHistory';
 import { useAuth } from '@/src/hooks/useAuth';
+import dynamic from 'next/dynamic';
 import { getOrdersByIds, getOrdersByPhone, getOrdersByUserId, confirmCustomerReceipt, cancelOrder, addDispute } from '@/src/lib/services/orders.service';
+
+const DisputeChatLazy = dynamic(() => import('@/src/components/shop/DisputeChat'), { ssr: false });
 import { submitReview } from '@/src/lib/services/reviews.service';
 import { incrementStock } from '@/src/lib/services/products.service';
 import { formatPrice } from '@/src/lib/formatters';
@@ -299,7 +302,7 @@ function CancelForm({ order, onCancelled, onClose }: CancelFormProps) {
   );
 }
 
-// ─── Dispute form (livré non reçu) ───────────────────────────────────────────
+// ─── Dispute section (livré non reçu) ────────────────────────────────────────
 
 interface DisputeFormProps {
   order: Order;
@@ -311,38 +314,25 @@ function DisputeSection({ order, onDisputed }: DisputeFormProps) {
   const [reason,   setReason]   = useState('');
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
-  const [sent,     setSent]     = useState(false);
 
+  // Litige déjà signalé → afficher le chat
   if (order.dispute_reason) {
     return (
       <div className="px-5 pb-5">
-        <div className="rounded-xl p-4" style={{ background: '#fff3cd', border: '1.5px solid #ffc107' }}>
-          <p className="text-sm font-semibold text-[#856404] mb-1">⚠️ Litige signalé</p>
-          <p className="text-xs text-gray-600 mb-2">{order.dispute_reason}</p>
-          {order.dispute_proof ? (
-            <div className="mt-2 border-t border-[#ffc10750] pt-2">
-              <p className="text-xs font-semibold text-[#856404] mb-1">Réponse Guinée Makiti :</p>
-              <p className="text-xs text-gray-700">{order.dispute_proof}</p>
-            </div>
-          ) : (
-            <p className="text-xs text-gray-400 italic">En attente de réponse de notre équipe…</p>
-          )}
+        <div className="rounded-xl overflow-hidden" style={{ border: '1.5px solid #ffc107' }}>
+          <div className="px-4 py-3" style={{ background: '#fff3cd' }}>
+            <p className="text-sm font-bold text-[#856404]">⚠️ Litige en cours</p>
+            <p className="text-xs text-gray-600 mt-0.5">Échangez avec notre équipe ci-dessous.</p>
+          </div>
+          <div className="p-3 bg-white">
+            <DisputeChatLazy orderId={order.id} sender="client" initialDisputeReason={order.dispute_reason} />
+          </div>
         </div>
       </div>
     );
   }
 
-  if (sent) {
-    return (
-      <div className="px-5 pb-5">
-        <div className="rounded-xl p-4" style={{ background: '#f0fdf4', border: '1.5px solid #86efac' }}>
-          <p className="text-sm font-semibold text-green-700">Litige envoyé ✓</p>
-          <p className="text-xs text-gray-500 mt-1">Notre équipe va vous contacter rapidement.</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Formulaire initial
   if (!showForm) {
     return (
       <div className="px-5 pb-5">
@@ -372,7 +362,6 @@ function DisputeSection({ order, onDisputed }: DisputeFormProps) {
           reason: reason.trim(),
         }),
       }).catch(() => {});
-      setSent(true);
       onDisputed(order.id);
     } catch {
       setError('Erreur lors de l\'envoi. Réessayez.');
