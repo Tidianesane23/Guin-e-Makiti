@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -29,6 +29,15 @@ export default function CartSummary({ items }: CartSummaryProps) {
   const [notes,     setNotes]     = useState('');
   const [loading,   setLoading]   = useState(false);
   const [error,     setError]     = useState('');
+
+  // Pré-remplir les champs avec les infos du compte connecté
+  useEffect(() => {
+    if (!user) return;
+    const meta = user.user_metadata ?? {};
+    const fullName = [meta.first_name, meta.last_name].filter(Boolean).join(' ');
+    if (fullName) setName(fullName);
+    if (meta.phone) setPhone(meta.phone);
+  }, [user]);
 
   const subtotal = items.reduce(
     (sum, { product, quantity }) => sum + (product.promo_price ?? product.price) * quantity,
