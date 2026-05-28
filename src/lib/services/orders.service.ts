@@ -158,16 +158,13 @@ export async function cancelOrder(id: string, reason: string): Promise<boolean> 
   return data === true;
 }
 
-export async function addDispute(
-  id: string,
-  reason: string,
-  client?: SupabaseClient,
-): Promise<void> {
-  const { error } = await db(client)
-    .from('orders')
-    .update({ dispute_reason: reason.trim() })
-    .eq('id', id);
+export async function addDispute(id: string, reason: string): Promise<boolean> {
+  const { data, error } = await browserClient.rpc('report_dispute_public', {
+    order_id: id,
+    reason:   reason.trim(),
+  });
   if (error) throw error;
+  return data === true;
 }
 
 export async function resolveDispute(

@@ -69,10 +69,15 @@ export async function POST(req: NextRequest) {
   try {
     const order = await req.json();
 
+    if (!order?.id) return NextResponse.json({ error: 'invalid order' }, { status: 400 });
+
     const apiKey    = process.env.RESEND_API_KEY;
     const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? 'guineemakiti224@gmail.com';
 
-    if (!apiKey) return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 });
+    if (!apiKey) {
+      console.error('[notify-admin] RESEND_API_KEY not configured');
+      return NextResponse.json({ error: 'RESEND_API_KEY not configured' }, { status: 500 });
+    }
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -87,11 +92,13 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       const err = await res.text();
+      console.error('[notify-admin] Resend error:', err);
       return NextResponse.json({ error: err }, { status: 500 });
     }
 
     return NextResponse.json({ sent: true });
   } catch (err) {
+    console.error('[notify-admin] Exception:', err);
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }

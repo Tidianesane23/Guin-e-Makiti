@@ -6,7 +6,8 @@ function fmtPrice(amount: number): string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function emailHtml(order: any, reason: string): string {
-  const shortId = order.id.slice(0, 8).toUpperCase();
+  const shortId = (order?.id ?? '????????').slice(0, 8).toUpperCase();
+  const total   = typeof order?.total === 'number' ? fmtPrice(order.total) : '—';
   return `<!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"></head>
@@ -36,9 +37,9 @@ function emailHtml(order: any, reason: string): string {
           <td style="padding:20px 32px;">
             <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9f9f9;border-radius:12px;padding:16px;">
               <tr><td>
-                <p style="margin:0 0 8px;font-size:14px;color:#333;"><strong>Client :</strong> ${order.customer_name}</p>
-                <p style="margin:0 0 8px;font-size:14px;color:#333;"><strong>Téléphone :</strong> ${order.customer_phone}</p>
-                <p style="margin:16px 0 0;font-size:18px;font-weight:bold;color:#C8860A;">${fmtPrice(order.total)}</p>
+                <p style="margin:0 0 8px;font-size:14px;color:#333;"><strong>Client :</strong> ${order?.customer_name ?? '—'}</p>
+                <p style="margin:0 0 8px;font-size:14px;color:#333;"><strong>Téléphone :</strong> ${order?.customer_phone ?? '—'}</p>
+                <p style="margin:16px 0 0;font-size:18px;font-weight:bold;color:#C8860A;">${total}</p>
               </td></tr>
             </table>
           </td>
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from:    'Guinée Makiti <noreply@guinee-makiti.shop>',
         to:      [adminEmail],
-        subject: `⚠️ Litige livraison #${order.id.slice(0, 8).toUpperCase()} — ${order.customer_name}`,
+        subject: `⚠️ Litige livraison #${(order?.id ?? '????????').slice(0, 8).toUpperCase()} — ${order?.customer_name ?? 'Client'}`,
         html:    emailHtml(order, reason),
       }),
     });

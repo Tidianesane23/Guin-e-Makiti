@@ -362,11 +362,15 @@ function DisputeSection({ order, onDisputed }: DisputeFormProps) {
     setError('');
     setLoading(true);
     try {
-      await addDispute(order.id, reason.trim());
+      const ok = await addDispute(order.id, reason.trim());
+      if (!ok) { setError('Impossible de signaler un litige pour cette commande.'); setLoading(false); return; }
       fetch('/api/notify-dispute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order, reason: reason.trim() }),
+        body: JSON.stringify({
+          order: { id: order.id, customer_name: order.customer_name, customer_phone: order.customer_phone, total: order.total },
+          reason: reason.trim(),
+        }),
       }).catch(() => {});
       setSent(true);
       onDisputed(order.id);

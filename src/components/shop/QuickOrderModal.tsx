@@ -25,7 +25,8 @@ export default function QuickOrderModal({ product, quantity, onClose, initialVar
   const { user } = useAuth();
 
   const variants      = (product.variant_names ?? []).filter(Boolean);
-  const hasVariants   = variants.length > 1;
+  // Si une variante est déjà sélectionnée depuis la page produit, pas besoin de la re-choisir
+  const hasVariants   = variants.length > 1 && !initialVariant;
 
   const [name,     setName]     = useState('');
   const [phone,    setPhone]    = useState('');
