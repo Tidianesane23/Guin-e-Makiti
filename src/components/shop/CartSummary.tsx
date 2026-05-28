@@ -50,6 +50,7 @@ export default function CartSummary({ items }: CartSummaryProps) {
       const order = await createOrder({
         customer_name:  name.trim(),
         customer_phone: phone.trim().replace(/\D/g, ''),
+        customer_email: user?.email ?? undefined,
         items,
         total_amount:   subtotal,
         notes:          notes.trim() || undefined,

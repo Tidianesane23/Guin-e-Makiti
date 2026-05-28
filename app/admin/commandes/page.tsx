@@ -250,8 +250,14 @@ export default function CommandesAdminPage() {
     const prevStatus = orders.find((o) => o.id === id)?.status;
     setOrders((os) => os.map((o) => o.id === id ? { ...o, status } : o));
     try {
-      await updateOrderStatus(id, status);
+      const updated = await updateOrderStatus(id, status);
       showToast('Statut mis à jour', true);
+      // Notification email (non-bloquant)
+      fetch('/api/notify-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order: updated, status }),
+      }).catch(() => {});
     } catch {
       if (prevStatus) setOrders((os) => os.map((o) => o.id === id ? { ...o, status: prevStatus } : o));
       showToast('Erreur lors de la mise à jour', false);

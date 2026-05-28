@@ -5,6 +5,7 @@ import type { Order, OrderStatus, CartItem } from '@/src/types';
 export interface OrderFormData {
   customer_name: string;
   customer_phone: string;
+  customer_email?: string;
   items: CartItem[];
   total_amount: number;
   notes?: string;
@@ -23,6 +24,7 @@ function mapOrder(row: any): Order {
     id:                 row.id,
     customer_name:      row.customer_name,
     customer_phone:     row.customer_phone,
+    customer_email:     row.customer_email ?? undefined,
     items:              row.items ?? [],
     total:              row.total_amount,
     status:             row.status as OrderStatus,
@@ -74,6 +76,7 @@ export async function createOrder(formData: OrderFormData, client?: SupabaseClie
       total_amount:   formData.total_amount,
       notes:          formData.notes,
       status:         'en_attente',
+      ...(formData.customer_email ? { customer_email: formData.customer_email } : {}),
       ...(formData.user_id ? { user_id: formData.user_id } : {}),
     });
 
