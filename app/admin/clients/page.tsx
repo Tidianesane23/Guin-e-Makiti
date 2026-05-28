@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUsers, faSpinner, faPhone, faShoppingBag } from '@/src/lib/icons';
+import { faUsers, faSpinner, faShoppingBag } from '@/src/lib/icons';
 import { supabase } from '@/src/lib/supabase';
 import { formatPrice } from '@/src/lib/formatters';
 
@@ -14,28 +14,25 @@ interface ClientRow {
   address:    string | null;
   gender:     string | null;
   created_at: string;
-  order_count:  number;
-  order_total:  number;
+  order_count: number;
+  order_total: number;
 }
 
 export default function AdminClientsPage() {
-  const [clients,  setClients]  = useState<ClientRow[]>([]);
-  const [loading,  setLoading]  = useState(true);
-  const [search,   setSearch]   = useState('');
+  const [clients, setClients] = useState<ClientRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search,  setSearch]  = useState('');
 
   useEffect(() => {
     async function load() {
       setLoading(true);
       try {
-        // Fetch all profiles
         const { data: profiles, error: pErr } = await supabase
           .from('profiles')
           .select('*')
           .order('created_at', { ascending: false });
-
         if (pErr) throw pErr;
 
-        // Fetch orders with user_id to compute stats per user
         const { data: orders } = await supabase
           .from('orders')
           .select('user_id, total_amount')
@@ -77,29 +74,23 @@ export default function AdminClientsPage() {
   const totalRevenue = clients.reduce((s, c) => s + c.order_total, 0);
 
   return (
-    <div className="flex flex-col gap-6 p-6 md:p-8">
+    <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-white">Clients</h1>
-        <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
-          Comptes clients inscrits
-        </p>
+        <h1 className="text-xl font-bold text-noir">Clients</h1>
+        <p className="text-sm text-gray-500">Comptes clients inscrits</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {[
-          { label: 'Clients inscrits', value: clients.length,          icon: faUsers     },
-          { label: 'Commandes liées',  value: totalOrders,             icon: faShoppingBag },
-          { label: 'Chiffre d\'affaires', value: formatPrice(totalRevenue), icon: faPhone, raw: true },
-        ].map(({ label, value, icon, raw }) => (
-          <div
-            key={label}
-            className="rounded-2xl p-5"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
-          >
+          { label: 'Clients inscrits',    value: String(clients.length),    icon: faUsers       },
+          { label: 'Commandes liées',      value: String(totalOrders),       icon: faShoppingBag },
+          { label: "Chiffre d'affaires",   value: formatPrice(totalRevenue), icon: faShoppingBag },
+        ].map(({ label, value, icon }) => (
+          <div key={label} className="rounded-2xl bg-white p-5 shadow-sm">
             <FontAwesomeIcon icon={icon} style={{ fontSize: 20, color: '#C8860A' }} />
-            <p className="mt-3 text-2xl font-bold text-white">{raw ? value : value}</p>
-            <p className="mt-0.5 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{label}</p>
+            <p className="mt-3 text-2xl font-bold text-noir">{value}</p>
+            <p className="mt-0.5 text-xs text-gray-500">{label}</p>
           </div>
         ))}
       </div>
@@ -109,43 +100,36 @@ export default function AdminClientsPage() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Rechercher par nom ou téléphone…"
-        className="w-full max-w-sm rounded-xl border px-4 py-2.5 text-sm outline-none"
-        style={{
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          color: '#fff',
-        }}
+        className="w-full max-w-sm rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-[#C8860A] focus:ring-1 focus:ring-[#C8860A]"
       />
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center gap-3 py-12 justify-center">
+        <div className="flex items-center justify-center gap-3 py-12">
           <FontAwesomeIcon icon={faSpinner} spin style={{ fontSize: 24, color: '#C8860A' }} />
-          <span className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>Chargement…</span>
+          <span className="text-sm text-gray-400">Chargement…</span>
         </div>
       ) : filtered.length === 0 ? (
-        <p className="py-12 text-center text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          {search ? 'Aucun client trouvé.' : 'Aucun client inscrit pour l\'instant.'}
+        <p className="py-12 text-center text-sm text-gray-400">
+          {search ? 'Aucun client trouvé.' : "Aucun client inscrit pour l'instant."}
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="overflow-x-auto rounded-2xl bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)' }}>
+              <tr className="border-b border-gray-100">
                 {['Client', 'Téléphone', 'Genre', 'Inscrit le', 'Commandes', 'Total'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filtered.map((c) => (
+              {filtered.map((c, i) => (
                 <tr
                   key={c.id}
-                  style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-                  className="transition-colors hover:bg-white/[0.02]"
+                  className={i < filtered.length - 1 ? 'border-b border-gray-50' : ''}
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -155,26 +139,24 @@ export default function AdminClientsPage() {
                       >
                         {(c.first_name?.[0] ?? c.last_name?.[0] ?? '?').toUpperCase()}
                       </div>
-                      <span className="font-medium text-white">
+                      <span className="font-medium text-noir">
                         {[c.first_name, c.last_name].filter(Boolean).join(' ') || 'Sans nom'}
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                    {c.phone ?? '—'}
-                  </td>
-                  <td className="px-4 py-3" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  <td className="px-4 py-3 text-gray-500">{c.phone ?? '—'}</td>
+                  <td className="px-4 py-3 text-gray-500">
                     {c.gender === 'homme' ? 'Homme' : c.gender === 'femme' ? 'Femme' : '—'}
                   </td>
-                  <td className="px-4 py-3 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                  <td className="px-4 py-3 text-xs text-gray-400">
                     {new Date(c.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="px-4 py-3">
                     <span
                       className="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
                       style={{
-                        background: c.order_count > 0 ? 'rgba(0,153,68,0.15)' : 'rgba(255,255,255,0.06)',
-                        color:      c.order_count > 0 ? '#00cc55'              : 'rgba(255,255,255,0.35)',
+                        background: c.order_count > 0 ? '#00994420' : '#f3f4f6',
+                        color:      c.order_count > 0 ? '#009944'   : '#9ca3af',
                       }}
                     >
                       {c.order_count}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faSpinner } from '@/src/lib/icons';
@@ -9,6 +9,7 @@ import { generateWhatsAppLink } from '@/src/lib/whatsapp';
 import { createOrder } from '@/src/lib/services/orders.service';
 import { formatPrice } from '@/src/lib/formatters';
 import { useOrderHistory } from '@/src/hooks/useOrderHistory';
+import { useAuth } from '@/src/hooks/useAuth';
 
 interface QuickOrderModalProps {
   product:        Product;
@@ -20,6 +21,7 @@ interface QuickOrderModalProps {
 export default function QuickOrderModal({ product, quantity, onClose, initialVariant }: QuickOrderModalProps) {
   const router = useRouter();
   const { addOrder } = useOrderHistory();
+  const { user } = useAuth();
 
   const variants      = (product.variant_names ?? []).filter(Boolean);
   const hasVariants   = variants.length > 1;
@@ -29,6 +31,14 @@ export default function QuickOrderModal({ product, quantity, onClose, initialVar
   const [variant,  setVariant]  = useState(initialVariant ?? '');
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
+
+  useEffect(() => {
+    if (!user) return;
+    const meta = user.user_metadata ?? {};
+    const fullName = [meta.first_name, meta.last_name].filter(Boolean).join(' ');
+    if (fullName) setName(fullName);
+    if (meta.phone) setPhone(meta.phone);
+  }, [user]);
 
   const effectivePrice = product.promo_price ?? product.price;
   const total          = effectivePrice * quantity;
@@ -52,12 +62,20 @@ export default function QuickOrderModal({ product, quantity, onClose, initialVar
       const order = await createOrder({
         customer_name:  name.trim(),
         customer_phone: phone.trim().replace(/\D/g, ''),
+        customer_email: user?.email ?? undefined,
         items:          [{ product, quantity, variant: selectedVariant }],
         total_amount:   total,
         notes:          selectedVariant ? `Modèle : ${selectedVariant}` : undefined,
+        user_id:        user?.id,
       });
 
-      // 3. Sauvegarder dans localStorage pour le suivi
+      // 3. Notifications (non-bloquant)
+      fetch('/api/notify-admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) }).catch(() => {});
+      if (order.customer_email) {
+        fetch('/api/notify-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ order, status: 'en_attente' }) }).catch(() => {});
+      }
+
+      // 4. Sauvegarder dans localStorage pour le suivi
       addOrder({
         id:        order.id,
         shortId:   order.id.slice(0, 8).toUpperCase(),

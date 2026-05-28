@@ -77,7 +77,7 @@ export default function OrdersTable({ orders, onStatusChange, onRowClick }: Orde
                 <td className="px-4 py-3 text-gray-500">{o.customer_phone}</td>
                 <td className="max-w-[180px] truncate px-4 py-3 text-gray-500">{o.products}</td>
                 <td className="px-4 py-3 font-semibold text-noir">{formatPrice(o.total)}</td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <div className="relative inline-block">
                     <button
                       onClick={() => setOpenSelect(openSelect === o.id ? null : o.id)}
