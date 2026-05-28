@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Fredoka } from 'next/font/google';
 import './globals.css';
-import MainLayout from '@/src/components/layout/MainLayout';
+import ConditionalLayout from '@/src/components/layout/ConditionalLayout';
 
 const jakarta = Plus_Jakarta_Sans({
   variable: '--font-jakarta',
@@ -63,7 +63,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Makiti" />
       </head>
       <body className="min-h-full flex flex-col">
-        <MainLayout>{children}</MainLayout>
+        <ConditionalLayout>{children}</ConditionalLayout>
       </body>
     </html>
   );
