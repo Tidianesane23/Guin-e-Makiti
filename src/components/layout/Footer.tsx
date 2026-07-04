@@ -140,7 +140,7 @@ export default function Footer() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
         >
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>
-            ©2026 Cyclone<br></br> Tous droits réservés.
+            ©2026 Cyclone - Tous droits réservés.
           </p>
           <p style={{ fontSize: 10, color: '#C8860A' }}>
             guineemakiti.shop
