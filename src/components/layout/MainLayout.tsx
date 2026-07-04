@@ -1,7 +1,7 @@
 import Header from './Header';
 import Footer from './Footer';
 import WhatsAppButton from './WhatsAppButton';
-//import TabaskiBanner from './TabaskiBanner';
+import TabaskiBanner from './TabaskiBanner';
 import AdminFloatingBar from './AdminFloatingBar';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTruck, faCreditCard, faShieldAlt } from '@/src/lib/icons';
