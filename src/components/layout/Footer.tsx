@@ -38,7 +38,7 @@ export default function Footer() {
                 className="mt-1 uppercase tracking-[1.5px]"
                 style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}
               >
-                Qualité · Livraison · Confiance 🇬🇳
+                Qualité · Livraison · Confiance 
               </p>
             </div>
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', maxWidth: 220, lineHeight: 1.6 }}>
@@ -101,7 +101,7 @@ export default function Footer() {
                   style={{ color: 'rgba(255,255,255,0.7)' }}
                 >
                   <FontAwesomeIcon icon={faPhone} style={{ fontSize: 13, color: '#25D366' }} />
-                  620326981
+                  626874755-620326981
                 </a>
               </li>
               <li className="flex items-center gap-2.5 text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
@@ -140,10 +140,10 @@ export default function Footer() {
           style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
         >
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>
-            © 2025 Guinée Makiti. Tous droits réservés.
+            © 202 Cyclone. Tous droits réservés.
           </p>
           <p style={{ fontSize: 10, color: '#C8860A' }}>
-            guineemakiti.com
+            guineemakiti.shop
           </p>
         </div>
       </div>
