@@ -1,4 +1,5 @@
-/*'use client';
+
+'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -31,7 +32,7 @@ export default function TabaskiBanner() {
       }}
     >
       {/* Cercles décoratifs cohérents avec PromoBanner */}
-  /*    <div style={{
+   <div style={{
         position: 'absolute', top: -20, right: -20,
         width: 120, height: 120, borderRadius: '50%',
         background: 'rgba(200,134,10,0.15)', filter: 'blur(30px)',
@@ -60,7 +61,7 @@ export default function TabaskiBanner() {
           </div>
 
           {/* Texte */}
-      /*    <div className="min-w-0">
+        <div className="min-w-0">
             <p className="text-sm font-bold text-white leading-snug">
               🌙{' '}
               <span style={{ color: '#C8860A' }}>
@@ -75,7 +76,7 @@ export default function TabaskiBanner() {
         </div>
 
         {/* Bouton fermer */}
-     /*   <button
+       <button
           onClick={dismiss}
           aria-label="Fermer la bannière Tabaski"
           className="shrink-0 flex items-center justify-center w-7 h-7 rounded-full transition-colors hover:bg-white/10"
@@ -85,5 +86,6 @@ export default function TabaskiBanner() {
         </button>
       </div>
     </div>
+
   );
 }
