@@ -13,7 +13,7 @@ const INFO_CARDS: { icon: IconDefinition; title: string; lines: string[]; color:
   {
     icon: faPhone,
     title: 'Téléphone',
-    lines: ['+224 620 32 69 81', 'Lun – Sam, 8h – 20h'],
+    lines: ['+224 626874755 - +224 620326981', 'Tous Les Jours, 8h – 20h'],
     color: 'text-rouge',
     bg: 'bg-rouge/10',
   },
